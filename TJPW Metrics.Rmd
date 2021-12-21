@@ -290,3 +290,7 @@ Probably just similar to 2v2 tag. Maybe start with a breakdown of 1/2, 1/4, 1/4 
 ## Using the ratings to answer some questions
 
 Once I have enough data being fed in, I should be able to use my ratings to answer some of my questions for fine tuning, such as tag bonus and how to treat outside wrestlers.
+
+# 12/21/21 Notes
+
+I have realized that my function to calculate ratings for an individual event have a flaw for when a wrestler has more than one match at an event. While this is a fairly rare occurrence, it does happen a few times, especially for the semifinals and finals of the Princess Cup. I believe this should be a simple fix where I have the prior ratings update at the end of the for loop for each individual match. This should also enable me to undo the Ai Shimizu Appearance patch and go back to treating that as one event. If I ever want to check what the elo ratings would be in the middle of a show, it shouldn't be that hard to figure out manually.
