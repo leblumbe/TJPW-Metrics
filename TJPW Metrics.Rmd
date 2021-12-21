@@ -1,0 +1,292 @@
+---
+title: "TJPW Metrics"
+author: "Lester Blumberg"
+date: "12/19/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#332288", "#AA4499", 
+                             "#44AA99", "#999933", "#882255", "#661100", "#6699CC", "#888888")
+```
+
+# Version 1: Singles Matches Only from 2013-14
+
+```{r load-data}
+tjpw13 = read_excel("TJPW Metrics.xlsx", sheet = 2, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+
+tjpw14 = read_excel("TJPW Metrics.xlsx", sheet = 3, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+
+tjpw15 = read_excel("TJPW Metrics.xlsx", sheet = 4, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+
+tjpw = rbind(tjpw13, tjpw14, tjpw15)
+```
+
+Subset by match type
+```{r subset-by-match}
+singles = tjpw %>% 
+  filter(`Match Type` == "Singles")
+
+tag = tjpw %>% 
+  filter(`Match Type` == "Tag")
+
+threeway = tjpw %>% 
+  filter(`Match Type` == "3 Way")
+
+sixperson = tjpw %>% 
+  filter(`Match Type` == "6 Person Tag")
+```
+
+```{r}
+summary(factor(tjpw$Event))
+```
+
+Formula for Expected Outcome
+```{r expected-outcome-function}
+expected <- function(ra, rb, s = 400){
+  expected_outcome = 1 / (1 + 10^((rb - ra)/s))
+  return(expected_outcome)
+} 
+```
+
+Formula for New Rating
+```{r new-rating-function}
+new_rating <- function(ra, rb, outcome, k = 20){
+  new = ra + k * (outcome - expected(ra, rb))
+  return(new)
+}
+```
+
+
+```{r dates-events}
+events = as.vector(tjpw$Event) %>% 
+  unique()
+
+dates = tjpw %>% 
+  select(Date) %>% 
+  distinct()
+```
+
+```{r wrestlers}
+wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler 3`,
+                            tjpw$`Wrestler 4`)) %>% 
+  unique() %>% 
+  na.omit()
+```
+
+Create new dataframe for ratings with events, dates, and each wrestler as columns
+```{r ratings-dataframe}
+Ratings = data.frame(matrix(nrow = length(events), ncol = length(wrestlers)+2))
+colnames(Ratings) = c("Event", "Date", wrestlers)
+Ratings$Event = events
+Ratings$Date = c(dates$Date[1:24], rep(dates$Date[25], 3), dates$Date[26:length(dates$Date)])
+
+starting_ratings = c(1500, 1500, rep(NA, length(wrestlers)-2))
+```
+
+Function for Calculating the new ratings for an individual event
+```{r calculation-function}
+calculate_new_ratings <- function(indiv_event){
+  this_event = singles %>% 
+    filter(Event == indiv_event)
+  
+  prior_ratings = if(indiv_event == "The First Meeting"){
+    starting_ratings
+  }
+  else{
+    Ratings[which(Ratings$Event == indiv_event) - 1,3:ncol(Ratings)]
+  }
+  
+  new_ratings = prior_ratings
+  for(i in 1:nrow(this_event)){
+    W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+    W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+    prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
+    prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
+    if(this_event$Decision[i] == "Time Limit Draw"){
+      new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 0.5)
+      new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0.5)
+    }
+    else{
+      new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
+      new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
+    }
+  }
+  return(new_ratings)
+}
+```
+
+Function for Calculating Ratings for an Individual Event (currently includes functionality for singles and tag matches, should be easy to add on other types later)
+```{r}
+calculate_new_ratings2 <- function(indiv_event){
+  this_event = tjpw %>% 
+    filter(Event == indiv_event)
+  
+  prior_ratings = if(indiv_event == "The First Meeting"){
+    starting_ratings
+  }
+  else{
+    Ratings[which(Ratings$Event == indiv_event) - 1,3:ncol(Ratings)]
+  }
+  
+  new_ratings = prior_ratings
+  for(i in 1:nrow(this_event)){
+    if(this_event$`Match Type`[i] == "Singles"){
+       W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+       W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+       prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2],
+                                    1500)
+       prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2],
+                                    1500)
+       if(this_event$Decision[i] == "Time Limit Draw"){
+         new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 0.5)
+         new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0.5)
+       }
+       else{
+         new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
+         new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
+       }
+    }
+    if(this_event$`Match Type`[i] == "Tag"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500)
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500)
+      prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
+                                  as.double(prior_ratings[W2-2])))
+      prior_team2_rating = mean(c(as.double(prior_ratings[W3-2]),
+                                  as.double(prior_ratings[W4-2])))
+      if(this_event$Decision[i] == "Time Limit Draw"){
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 0.5)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0.5)
+      }
+      else{
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+      }
+      new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (2/3)
+      new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+      new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * (2/3)
+      new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/3)
+    }
+  }
+  return(new_ratings)
+}
+```
+
+
+Apply functions to dataset to get ratings from start to finish
+```{r run-ratings}
+j = 1
+while(j <= nrow(Ratings)){
+  Ratings[j, 3:ncol(Ratings)] = calculate_new_ratings2(events[j])
+  j = j+1
+}
+```
+
+Make data longform for easier plotting
+```{r longer}
+Ratings.long = Ratings %>% 
+  pivot_longer(3:ncol(Ratings), names_to = "Wrestler", values_to = "Rating")
+
+long.2015 = Ratings %>% 
+  select(c(1:4,6,8:9,11:19)) %>% 
+  pivot_longer(3:16, names_to = "Wrestler", values_to = "Rating")
+```
+
+```{r plot}
+Ratings.long %>% 
+  ggplot(aes(x = Date, y = Rating, color = Wrestler)) +
+  geom_line(size = 1) +
+  scale_color_viridis_d() +
+  geom_hline(yintercept = 1500) +
+  labs(title = "TJPW Elo Ratings v2 2013-2015",
+       subtitle = "s=400, k=20, 1v1 and 2v2 Matches Only, Starting Value 1500")
+
+long.2015 %>% 
+  ggplot(aes(x = Date, y = Rating, color = Wrestler)) +
+  geom_line(size = 1) +
+  scale_color_viridis_d() +
+  geom_hline(yintercept = 1500) +
+  labs(title = "TJPW Elo Ratings v2 2013-2015 (only active at end 2015)",
+       subtitle = "s=400, k=20, 1v1 and 2v2 Matches Only, Starting Value 1500")
+```
+
+```{r}
+end2013 = Ratings[7, 3:7]
+end2014 = Ratings[27, 3:14]
+end2015 = Ratings[44, 3:21]
+```
+
+# Including Tag Matches
+
+I'm not sure the best way to approach this, but it feels like a wrestler should not gain or lose as many points for a tag match as for a singles match. One approach would be to see that the total points gained or lost for a team is roughly equivalent to the points gained or lost for a wrestler in a singles match.
+
+The other questions are how to determine how much each member of a team gains and loses and which wrestler from the opposing team they gain and lose from. Should the team member who picks up the win get 75% of team points? 2/3? Should the team member who is defeated lose 75% of team points? 2/3?
+
+# Including 3-Way Matches
+
+This is another difficult consideration. Clearly, the winning wrestler deserves to gain points, and the wrestler who is defeated deserves to lose points. However, how should I consider the wrestler who is not involved in the decision? Also, how should the points transaction compare to a 1v1 singles match? While a 3-way victory is impressive, the accomplishment is not the same as defeating a wrestler 1 on 1.
+
+# Other match types
+
+Decisions made for tag and 3-way matches should be instructive and consistent with how I include match types not seen yet, such as multi-person tag matches (3v3, 4v4, etc), free-for-all matches with more than 3 competitors (4-way, battle royal, etc), and 3-way and 4-way tag matches.
+
+# Titles and Tournaments
+
+2014 sees the first edition of the Tokyo Princess Cup, a single elimination tournament featuring 8 wrestlers. Should each match be treated purely as a singles match? Should there be any kind of bonus for reaching a certain round or winning the whole thing? Similarly, when titles enter the picture, should title matches be treated as ordinary matches? Elo ratings are constructed to give and take points equally. Would I have to take extra points away from the loser of a tournament or title match to give those points to the winner? Would that be the right call?
+
+# Matches outside of TJPW
+
+TJPW wrestlers competed in dark matches at DDT Peter Pan in both 2013 and 2014. These matches are theoretically no different from matches that would take place as part of a TJPW show. Should I include them in the ratings? Should this exception only be made for TJPW offer matches at DDT shows or also for offer matches at other promotions' shows (if they exist)?
+
+# Handling irregular and outside wrestlers
+
+Without ratings for the larger joshi wrestling scene, it will be difficult to give proper ratings to outsiders who come into TJPW for special matches every so often, such as Aja Kong or Meiko Satomura. Saki Akai is one such wrestler already in the dataset, with only 2 matches in TJPW. With enough matches, any new wrestler should be fairly quickly moved in the right direction in the ratings, but there might not be enough matches for all outsiders. Should special ratings be given to debuting outside wrestlers whose body of work makes it clear that they are far beyond a rookie TJPW wrestler?
+
+# Match Duration
+
+Match duration is anecdotally linked to wrestler parity. Early on, many of the matches are short because all of the wrestlers are fairly new to the sport. However, there will be larger disparities in wrestler experience in the future. It only follows that a wrestler in their first year will be defeated by a strong wrestler more quickly than they would if they faced off two years later. Should the duration of a match play a role in the ratings change for the match?
+
+# Post 2015 Data Thoughts
+
+## Wrestlers with new names
+
+Ririko Kendo became Rika Tatsumi. This is not a gimmick change. Just a new name. I'll need to devise a way to have them count as the same person, possibly just manually. Also, Saki Akai will be difficult. I'll have to see if Saki Akamiya counts enough as an entirely different person to just make separate, but I know that Sakisama is coming. It seems like that's just a continuation of Biishiki-Gun Saki Akai. This will take some consideration.
+
+## Tag Points
+
+Tag teams must be included. The ratings are missing too much right now. I think just pool the wrestlers on each team for average team ratings and treat the match like a singles match between two wrestlers with those ratings. Then just divvy up for who defeated whom.
+
+## Tag Bonus
+
+It might be a good idea to add a tag bonus to the prior rating for teams that have teamed up before. While there are not a lot of designated teams, they do exist, and it does seem like they perform better than just a random assortment of wrestlers. Two ideas for a bonus: either based on # of previous matches (total or in a given period of time) or based on prior win percentage as a team.
+
+## Battle Royal
+
+Still no clue how to factor that in. My best thought is to give rating points to the winner, give a small amount to the runner up, and take small but equal amounts from every other participant to make this happen. In the end, I think that winning a battle royal should be worth more than just winning an individual match. Maybe this will be reflected through expected outcome.
+
+## 3 way
+
+Still unsure about this too. Maybe play with expected outcome (starting from 1/3 instead of 1/2) like battle royal idea.
+
+# V2 Complete
+
+## Tag Team Functionality
+
+This is a good starting point. Currently, the member of the team who scores the victory gets 2/3 of the credit. Similarly, the defeated member gets hit with 2/3 of the penalty.
+
+## Six Person Tag
+
+Probably just similar to 2v2 tag. Maybe start with a breakdown of 1/2, 1/4, 1/4 for the three team members with the half going to the person getting the win/being defeated.
+
+## Using the ratings to answer some questions
+
+Once I have enough data being fed in, I should be able to use my ratings to answer some of my questions for fine tuning, such as tag bonus and how to treat outside wrestlers.
