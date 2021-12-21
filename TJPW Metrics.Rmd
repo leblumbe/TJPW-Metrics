@@ -178,6 +178,40 @@ calculate_new_ratings2 <- function(indiv_event){
       new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * (2/3)
       new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/3)
     }
+    if(this_event$`Match Type`[i] == "6 Person Tag"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
+      W5 = which(colnames(Ratings) == this_event$`Wrestler 5`[i])
+      W6 = which(colnames(Ratings) == this_event$`Wrestler 6`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500)
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500)
+      prior_ratings[W5-2] = ifelse(!is.na(prior_ratings[W5-2]), prior_ratings[W5-2], 1500)
+      prior_ratings[W6-2] = ifelse(!is.na(prior_ratings[W6-2]), prior_ratings[W6-2], 1500)
+      prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
+                                  as.double(prior_ratings[W2-2]),
+                                  as.double(prior_ratings[W3-2])))
+      prior_team2_rating = mean(c(as.double(prior_ratings[W4-2]),
+                                  as.double(prior_ratings[W5-2]),
+                                  as.double(prior_ratings[W6-2])))
+      if(this_event$Decision[i] == "Time Limit Draw"){
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 0.5)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0.5)
+      }
+      else{
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+      }
+      new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/2)
+      new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+      new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+      new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/2)
+      new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+      new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+    }
     prior_ratings = new_ratings #Fixes issue with multiple matches at one show
   }
   return(new_ratings)
@@ -224,11 +258,9 @@ long.2015 %>%
 
 ```{r}
 end2013 = Ratings[7, 3:7]
-end2014 = Ratings[27, 3:14]
-end2015 = Ratings[44, 3:21]
-Ratings.v1 = read.table("TJPW Elo Ratings v1.csv", header = T)
-Ratings.v2 = read.table("TJPW Elo Ratings v2.csv", header = T)
-Ratings.v2.1.1 = Ratings
+end2014 = Ratings[28, 3:14]
+end2015 = Ratings[47, 3:21]
+Ratings.v2.2 = Ratings
 ```
 
 # Including Tag Matches
@@ -308,3 +340,7 @@ The change seems to have worked and was very simple. Now, I'll try to remove the
 ## Post Patch Removal
 
 Took it out. It's all still good. Next step is to add in trios matches.
+
+## Post Trios
+
+Pretty simple inclusion. Currently 1/2 credit to victor and defeated. 1/4 to other team participants.
