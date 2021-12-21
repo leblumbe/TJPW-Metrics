@@ -82,7 +82,7 @@ Create new dataframe for ratings with events, dates, and each wrestler as column
 Ratings = data.frame(matrix(nrow = length(events), ncol = length(wrestlers)+2))
 colnames(Ratings) = c("Event", "Date", wrestlers)
 Ratings$Event = events
-Ratings$Date = c(dates$Date[1:24], rep(dates$Date[25], 3), dates$Date[26:length(dates$Date)])
+Ratings$Date = c(dates$Date)
 
 starting_ratings = c(1500, 1500, rep(NA, length(wrestlers)-2))
 ```
@@ -122,7 +122,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles and tag matches, should be easy to add on other types later)
 ```{r}
-#V2.1
+#V2.1.1
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -228,7 +228,7 @@ end2014 = Ratings[27, 3:14]
 end2015 = Ratings[44, 3:21]
 Ratings.v1 = read.table("TJPW Elo Ratings v1.csv", header = T)
 Ratings.v2 = read.table("TJPW Elo Ratings v2.csv", header = T)
-Ratings.v2.1 = Ratings
+Ratings.v2.1.1 = Ratings
 ```
 
 # Including Tag Matches
@@ -304,3 +304,7 @@ I have realized that my function to calculate ratings for an individual event ha
 ## Post-Implementation
 
 The change seems to have worked and was very simple. Now, I'll try to remove the Ai Shimizu Appearance patch and see if the results are the same.
+
+## Post Patch Removal
+
+Took it out. It's all still good. Next step is to add in trios matches.
