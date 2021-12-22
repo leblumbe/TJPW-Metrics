@@ -68,17 +68,15 @@ new_rating_threeway <- function(r1, r2, r3, outcome, k = 20){
 
 
 ```{r dates-events}
-events = as.vector(tjpw$Event) %>% 
-  unique()
 
-dates = tjpw %>% 
-  select(Date) %>% 
-  distinct()
+events_dates = tjpw %>% 
+  select(Event, Date) %>% 
+  distinct(Event, .keep_all = T)
 ```
 
 ```{r wrestlers}
 wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler 3`,
-                            tjpw$`Wrestler 4`)) %>% 
+                            tjpw$`Wrestler 4`, tjpw$`Wrestler 5`, tjpw$`Wrestler 6`)) %>% 
   unique() %>% 
   na.omit()
 ```
@@ -87,8 +85,8 @@ Create new dataframe for ratings with events, dates, and each wrestler as column
 ```{r ratings-dataframe}
 Ratings = data.frame(matrix(nrow = length(events), ncol = length(wrestlers)+2))
 colnames(Ratings) = c("Event", "Date", wrestlers)
-Ratings$Event = events
-Ratings$Date = c(dates$Date)
+Ratings$Event = events_dates$Event
+Ratings$Date = events_dates$Date
 
 starting_ratings = c(1500, 1500, rep(NA, length(wrestlers)-2))
 ```
@@ -261,7 +259,7 @@ Apply functions to dataset to get ratings from start to finish
 ```{r run-ratings}
 j = 1
 while(j <= nrow(Ratings)){
-  Ratings[j, 3:ncol(Ratings)] = calculate_new_ratings2(events[j])
+  Ratings[j, 3:ncol(Ratings)] = calculate_new_ratings2(events_dates$Event[j])
   j = j+1
 }
 ```
@@ -394,3 +392,11 @@ As of right now, the only matches not in the system are a battle royal and a han
 ## V2.3.1
 
 I flipped and decided to make the outcomes 5/6 and 1/6 for 3 way matches. After looking at it a bit, I think that this helps to make sure that the winners get around the same boost as winning a singles match. Also, the uninvolved loser still takes some penalty, which is fair since the goal of wrestling is to win the match. Also, the penalty is still about half of what it would be if they were the defeated loser, so they are still shielded some. I will probably leave this alone for now and focus more on adding 2016 into the dataset.
+
+# 12/22/21 Notes
+
+I finished data entry for 2016 last night. No new Battle Royals this year. There is one match of a new type though. There was a threeway elimination match. I might wait before coding its inclusion just to see if there are more matches like this in 2017 or 2018. 2016 also saw a few instances of multiple shows on the same day. I fixed an issue with creating the Ratings dataframe that should fix any possible issues there. I also removed the one match from a DDT show that I had been including. Looking at Cagematch shows that there are a number of these matches that occur over the years. For now, it is best to exclude them. I can always go back and add them in later. One exception will be if any important matches (such as a title match) take place on a DDT show.
+
+## Titles
+
+2016 sees the introduction of the (at this point in time) TOKYO Princess Of Princess Title. Yamashita holds it for most of the year, but impressive rookie Yuu wins it off of her. Because I'm currently using an ELO rating, I don't think I should give any special significance to title matches. However, I am noting them in the spreadsheet. If I move on to a more customized metric, I will definitely look at including title reigns, title matches, and #1 contender matches.
