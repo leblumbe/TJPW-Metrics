@@ -22,7 +22,9 @@ tjpw14 = read_excel("TJPW Metrics.xlsx", sheet = 3, col_types = c("guess", "date
 
 tjpw15 = read_excel("TJPW Metrics.xlsx", sheet = 4, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
 
-tjpw = rbind(tjpw13, tjpw14, tjpw15)
+tjpw16 = read_excel("TJPW Metrics.xlsx", sheet = 5, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+
+tjpw = rbind(tjpw13, tjpw14, tjpw15, tjpw16)
 ```
 
 Subset by match type
@@ -83,7 +85,7 @@ wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler
 
 Create new dataframe for ratings with events, dates, and each wrestler as columns
 ```{r ratings-dataframe}
-Ratings = data.frame(matrix(nrow = length(events), ncol = length(wrestlers)+2))
+Ratings = data.frame(matrix(nrow = nrow(events_dates), ncol = length(wrestlers)+2))
 colnames(Ratings) = c("Event", "Date", wrestlers)
 Ratings$Event = events_dates$Event
 Ratings$Date = events_dates$Date
@@ -126,7 +128,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
 ```{r}
-#V2.3.1 (Change standard 3 way outcomes to 5/6 for winner, 1/6 for uninvolved loser)
+#V2.3.2 (Include 2016 Data)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -269,9 +271,9 @@ Make data longform for easier plotting
 Ratings.long = Ratings %>% 
   pivot_longer(3:ncol(Ratings), names_to = "Wrestler", values_to = "Rating")
 
-long.2015 = Ratings %>% 
-  select(c(1:4,6,8:9,11:19)) %>% 
-  pivot_longer(3:16, names_to = "Wrestler", values_to = "Rating")
+long.2016 = Ratings %>% 
+  select(c(1:4,6,8:9,11,13:16,18:24,26:27)) %>% 
+  pivot_longer(`Miyu Yamashita`:`Mil Clown`, names_to = "Wrestler", values_to = "Rating")
 ```
 
 ```{r plot}
@@ -280,23 +282,24 @@ Ratings.long %>%
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.2 2013-2015",
-       subtitle = "s=400, k=20, 1v1, 2v2, and 3v3 Matches Only, Starting Value 1500")
+  labs(title = "TJPW Elo Ratings v2.3.2 2013-2015",
+       subtitle = "s=400, k=20, Starting Value 1500")
 
-long.2015 %>% 
+long.2016 %>% 
   ggplot(aes(x = Date, y = Rating, color = Wrestler)) +
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.2 2013-2015 (only active at end 2015)",
-       subtitle = "s=400, k=20, 1v1, 2v2, and 3v3 Matches Only, Starting Value 1500")
+  labs(title = "TJPW Elo Ratings v2.3.2 2013-2016 (only active in 2016)",
+       subtitle = "s=400, k=20, Starting Value 1500")
 ```
 
 ```{r}
 end2013 = Ratings[7, 3:7]
 end2014 = Ratings[28, 3:14]
-end2015 = Ratings[47, 3:21]
-Ratings.v2.3.1 = Ratings
+end2015 = Ratings[46, 3:21]
+end2016 = Ratings[79, 3:27]
+Ratings.v2.3.2 = Ratings
 ```
 
 # Including Tag Matches
@@ -400,3 +403,7 @@ I finished data entry for 2016 last night. No new Battle Royals this year. There
 ## Titles
 
 2016 sees the introduction of the (at this point in time) TOKYO Princess Of Princess Title. Yamashita holds it for most of the year, but impressive rookie Yuu wins it off of her. Because I'm currently using an ELO rating, I don't think I should give any special significance to title matches. However, I am noting them in the spreadsheet. If I move on to a more customized metric, I will definitely look at including title reigns, title matches, and #1 contender matches.
+
+## Mil Clown
+
+Late in 2016, Yuka Sakazaki departs to Magic Country while her twin sister Mil Clown arrives in her place. Mil Clown has a better performance record than her sister. It is tempting to combine their matches, but they are two different people. I will keep them separate for now.
