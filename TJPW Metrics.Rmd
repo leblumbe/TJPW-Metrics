@@ -24,7 +24,9 @@ tjpw15 = read_excel("TJPW Metrics.xlsx", sheet = 4, col_types = c("guess", "date
 
 tjpw16 = read_excel("TJPW Metrics.xlsx", sheet = 5, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
 
-tjpw = rbind(tjpw13, tjpw14, tjpw15, tjpw16)
+tjpw17 = read_excel("TJPW Metrics.xlsx", sheet = 6, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+
+tjpw = rbind(tjpw13, tjpw14, tjpw15, tjpw16, tjpw17)
 ```
 
 Subset by match type
@@ -128,7 +130,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
 ```{r}
-#V2.3.2 (Include 2016 Data)
+#V2.3.3 (Include 2017 Data)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -271,9 +273,9 @@ Make data longform for easier plotting
 Ratings.long = Ratings %>% 
   pivot_longer(3:ncol(Ratings), names_to = "Wrestler", values_to = "Rating")
 
-long.2016 = Ratings %>% 
-  select(c(1:4,6,8:9,11,13:16,18:24,26:27)) %>% 
-  pivot_longer(`Miyu Yamashita`:`Mil Clown`, names_to = "Wrestler", values_to = "Rating")
+long.2017 = Ratings %>% 
+  select(c(1:3,6,8:9,11,13,16,18,20:22,24,26:27,30:34,36)) %>% 
+  pivot_longer(`Miyu Yamashita`:`Yuki Kamifuku`, names_to = "Wrestler", values_to = "Rating")
 ```
 
 ```{r plot}
@@ -282,15 +284,15 @@ Ratings.long %>%
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.3.2 2013-2015",
+  labs(title = "TJPW Elo Ratings v2.3.3 2013-2017",
        subtitle = "s=400, k=20, Starting Value 1500")
 
-long.2016 %>% 
+long.2017 %>% 
   ggplot(aes(x = Date, y = Rating, color = Wrestler)) +
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.3.2 2013-2016 (only active in 2016)",
+  labs(title = "TJPW Elo Ratings v2.3.3 2013-2017 (only active in 2017)",
        subtitle = "s=400, k=20, Starting Value 1500")
 ```
 
@@ -307,7 +309,10 @@ row.names(end2015) = "Elo Rating"
 end2016 = Ratings[79, 3:27]
 row.names(end2016) = "Elo Rating"
 
-Ratings.v2.3.2 = Ratings
+end2017 = Ratings[111, 3:39]
+row.names(end2017) = "Elo Rating"
+
+Ratings.v2.3.3 = Ratings
 ```
 
 ```{r}
@@ -322,6 +327,9 @@ row.names(elo.change.2015) = "Rating Change"
   
 elo.change.2016 = end2016 - c(end2015, rep(1500,6))
 row.names(elo.change.2016) = "Rating Change"
+
+elo.change.2017 = end2017 - c(end2016, rep(1500,12))
+row.names(elo.change.2017) = "Rating Change"
 ```
 
 
