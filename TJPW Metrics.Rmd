@@ -85,6 +85,11 @@ wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler
   na.omit()
 ```
 
+```{r prior-experience}
+prior_exp = read_excel("TJPW Metrics.xlsx", sheet = 7)
+```
+
+
 Create new dataframe for ratings with events, dates, and each wrestler as columns
 ```{r ratings-dataframe}
 Ratings = data.frame(matrix(nrow = nrow(events_dates), ncol = length(wrestlers)+2))
@@ -130,7 +135,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
 ```{r}
-#V2.3.3 (Include 2017 Data)
+#V2.4 (Prior Experience Used For Starting Ratings)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -148,9 +153,9 @@ calculate_new_ratings2 <- function(indiv_event){
        W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
        W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
        prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2],
-                                    1500)
+                                    1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
        prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2],
-                                    1500)
+                                    1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
        if(this_event$Decision[i] == "Time Limit Draw"){
          new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 0.5)
          new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0.5)
@@ -165,10 +170,10 @@ calculate_new_ratings2 <- function(indiv_event){
       W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
       W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
       W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
-      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
-      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
-      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500)
-      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500)
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 4`[i])])
       prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
                                   as.double(prior_ratings[W2-2])))
       prior_team2_rating = mean(c(as.double(prior_ratings[W3-2]),
@@ -193,12 +198,12 @@ calculate_new_ratings2 <- function(indiv_event){
       W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
       W5 = which(colnames(Ratings) == this_event$`Wrestler 5`[i])
       W6 = which(colnames(Ratings) == this_event$`Wrestler 6`[i])
-      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
-      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
-      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500)
-      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500)
-      prior_ratings[W5-2] = ifelse(!is.na(prior_ratings[W5-2]), prior_ratings[W5-2], 1500)
-      prior_ratings[W6-2] = ifelse(!is.na(prior_ratings[W6-2]), prior_ratings[W6-2], 1500)
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 4`[i])])
+      prior_ratings[W5-2] = ifelse(!is.na(prior_ratings[W5-2]), prior_ratings[W5-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 5`[i])])
+      prior_ratings[W6-2] = ifelse(!is.na(prior_ratings[W6-2]), prior_ratings[W6-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 6`[i])])
       prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
                                   as.double(prior_ratings[W2-2]),
                                   as.double(prior_ratings[W3-2])))
@@ -224,9 +229,9 @@ calculate_new_ratings2 <- function(indiv_event){
       W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
       W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
       W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
-      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500)
-      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500)
-      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500)
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
       if(this_event$Decision[i] == "Time Limit Draw"){
         new_ratings[W1-2] = new_rating_threeway(prior_ratings[W1-2], prior_ratings[W2-2], prior_ratings[W3-2], 1/3)
         new_ratings[W2-2] = new_rating_threeway(prior_ratings[W2-2], prior_ratings[W1-2], prior_ratings[W3-2], 1/3)
@@ -312,7 +317,7 @@ row.names(end2016) = "Elo Rating"
 end2017 = Ratings[111, 3:39]
 row.names(end2017) = "Elo Rating"
 
-Ratings.v2.3.3 = Ratings
+Ratings.v2.4 = Ratings
 ```
 
 ```{r}
@@ -462,3 +467,29 @@ The only other consideration is whether to change a wrestler's rating between ap
 ## Tag Team Ratings
 
 For now this is a separate thought from the Elo Ratings, but it might be fun to look at doing Tag Team Elo Ratings too. 2017 sees TJPW add tag titles, which means that there are now going to be more dedicated tag teams going forward. Starting ratings for any 1st time tag team would need to be informed by the current singles ratings. The question is then do you keep using the singles ratings as part of tag team ratings even after a team's 1st match. It's possible that a far more complex version of these ratings could see singles and tag ratings developed side-by-side. The Elo points gained and lost in tag matches would then be divided up between the tag rating and the two wrestlers' singles ratings. This could become fairly complicated as 6-person and greater tag matches become more common with the growth of the roster. I imagine that this will be an issue best explored after I finish getting all the data through 2021 into the ratings.
+
+# Post 2017 Data Notes
+
+## Prior Experience
+
+I have determined that I need to include prior experience when determining the starting rating for a wrestler. Most TJPW wrestlers will start at 1500, but there are a few exceptions, most notably Mizuki. After examining the number of matches and years wrestled for the wrestlers, I have decided upon starting with 20 ratings points per year wrestled. For most of the wrestlers, this would produce a similar result to 1 point per match wrestled. However, a few wrestlers would see ratings well over 2000 if I were to go 1 point per match. 20 points per year should be sufficient. It makes sure that any wrestler with a LONG career prior to their first TJPW match is rated above the TJPW roster. The only rough result from this process is Shiro Koshinaka, whose rating will drag his trios team's rating up quite a bit, especially since Yukio Saint Laurent does not have any know prior wrestling experience. This will serve to diminish the bump up that Rika and Maho get from this match, but this is a fairly small effect and should be balanced out by the gains wrestlers see in other matches against outside wrestlers.
+
+# Post adding prior experience (v2.4)
+
+## Results
+
+Great success! Most of the changes aren't very big, but they're almost all positive. This makes sense because Elo ratings are a zero-sum game. If you pump more points into the system, then almost everyone will see their ratings increase. What I am happy to see though is that the wrestlers who wrestled against outsiders directly saw their ratings increase the most. Miyu saw the largest increase for a wrestler who started in TJPW, moving up about 11.3 points. The only wrestler adversely affected is Rika, who loses about one point. This was to be expected with Shiro Koshinaka being bumped up so much, but it's a small decrease. Perhaps a future version of this could see more of an exponential relationship between years wrestled and starting rating, with the bonus always increasing but at a declining rate.
+
+## Other Thoughts
+
+I should probably just create a vector or dataframe of initial ratings to simplify the code of the calculation function. Then I can also make any tweaks outside of the function to make sure that they're being applied properly. This could also make for accurate yearly change numbers pretty easily.
+
+I should probably also just make the yearly end ratings and ratings changes into dataframes with the years as rows. Could allow me to make some different plots more easily.
+
+It's probably time to program the elimination match. I can just leave it flexible enough to add to if there is another elimination match later. As far as the battle royal, it looks like there is another one in 2018, so I'll wait on it.
+
+Looking ahead, I also see that 2018 has some other varied match types: one count, two count, best of 3 falls, and a 3v2 handicap. These will all take some thought to be implemented properly. I believe that there might also be a 1v2 handicap match from some point that hasn't been implemented yet. I should probably get around to that with the 2018 data too.
+
+Some other plots to toy with could be ones that break things up into smaller chunks (yearly?) as well as ones that highlight a specific wrestler or two, possibly graying and fading out the other wrestlers. I could also try adding vertical lines to indicate title changes or shading the lines of wrestlers to show their title reigns. Could also try some kind of marker to show the winner of the Princess Cup. I would also like to try some options for ending a wrestler's line when they leave the promotion. This could help to create a plot that shows all of the rostered wrestlers over the years without becoming too cluttered over time.
+
+I'm looking forward to what the 2018 data brings. I'm pretty sure that Miyu is about to embark upon a year-long plus title reign. This should see her become the first wrestler in TJPW to clear 1700. Hopefully, this helps to raise the ceiling for the company and allows more wrestlers to climb higher in 2018 and future years.
