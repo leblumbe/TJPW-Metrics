@@ -493,3 +493,27 @@ Looking ahead, I also see that 2018 has some other varied match types: one count
 Some other plots to toy with could be ones that break things up into smaller chunks (yearly?) as well as ones that highlight a specific wrestler or two, possibly graying and fading out the other wrestlers. I could also try adding vertical lines to indicate title changes or shading the lines of wrestlers to show their title reigns. Could also try some kind of marker to show the winner of the Princess Cup. I would also like to try some options for ending a wrestler's line when they leave the promotion. This could help to create a plot that shows all of the rostered wrestlers over the years without becoming too cluttered over time.
 
 I'm looking forward to what the 2018 data brings. I'm pretty sure that Miyu is about to embark upon a year-long plus title reign. This should see her become the first wrestler in TJPW to clear 1700. Hopefully, this helps to raise the ceiling for the company and allows more wrestlers to climb higher in 2018 and future years.
+
+# 1/2/22 Thoughts
+
+## Programming new match types
+
+### Handicap
+
+First up are the two 1v2 handicap matches in the existing database that need to be programmed. I considered trying to program them as variations on threeway matches or tag matches. I've decided on tag matches since handicap matches essentially are tag matches with a missing partner or two. I'm currently treating tag matches as a singles match between two competitors whose ratings are the averages of the team members' ratings. I hadn't put a lot of thought into the possibility of treating them as sums of the ratings instead, but I'm glad that I didn't. Without changing s in the expected outcome formula to be higher than 400, using sums would lead to more extreme expected outcomes and therefore larger ratings changes. Treating these matches as averages instead keeps all the matches on a similar scale. However, it's possible that playing around with this scaling for tag matches could produce more accurate ratings in the end. It can be something that I consider testing in the future.
+
+To keep with the idea of treating handicap matches like tag matches and keeping things on the same scale, my process at this time will be to treat the larger side of the handicap match as what the size of a full team would be. I will then treat the difference between this number and the actual number of wrestlers on the smaller team as the number of missing wrestlers, who will have a rating of 0. So for a 1v2 handicap match, the full number of wrestlers for a team is 2. The larger team's rating will be calculated like a normal tag team, as an average of the two wrestlers' ratings. The side with just one wrestler will be treated as having one missing wrestler. Its rating will be an average of the one existing wrestler and 0; I will just halve the one wrestler's rating.
+
+In most cases, this process should produce a very low likelihood of winning for the side with one wrestler, but this is probably the way it should be. One individual wrestler SHOULD have a tiny chance of beating a team of two wrestlers. If they do win (as I know they do in both matches so far in the database), then this is an achievement worth a large increase in rating.
+
+One other thing I like about this approach is that it should scale well to handicap matches of all sizes (just as my tag approach scales well to 3v3 and larger matches). What's also good is that the difference between the two sides in the match should grow smaller as the number of competitors on both sides increases equally. The 2 in a 2v3 match has a better chance of winning than the 1 in a 1v2; the 3 in a 3v4 match will then also have an even greater chance of winning. This will be the mathematical result and makes sense logically.
+
+I'll code the 1v2 to allow for draws (as I do all match types). I'll also try to code it in a flexible enough way to allow for any possible matches where the 2 side wins.
+
+### Elimination
+
+I'll figure this one out at some point over the next week. It's late, so I'll just take care of 1v2 handicap matches for the night.
+
+## Missed Results
+
+I just realized that there were two matches in 2017 where the result was a double countout. I don't think that's programmed in to count as a draw, which means that my ratings might be counting the wrestlers as winners and losers instead. I'll check this and fix it if necessary.
