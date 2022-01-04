@@ -140,7 +140,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
 ```{r current-calculation-function}
-#V2.4.1 (Added Double Countouts as Draws)
+#V2.4.2 (Added 1v2 handicaps)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -262,6 +262,45 @@ calculate_new_ratings2 <- function(indiv_event){
         }
       }
     }
+    if(this_event$`Match Type`[i] == "1 v 2 Handicap"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      if(this_event$Decision[i] %in% draws){
+# Left Blank to be filled in if necessary        
+      }
+      else{
+        if(this_event$`W1 Result`[i] == "W"){#indicates W1 is alone
+          prior_team1_rating = as.double(prior_ratings[W1-2]) / 2
+          prior_team2_rating = mean(c(as.double(prior_ratings[W2-2]),
+                                      as.double(prior_ratings[W3-2])))
+          new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
+          new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+          if(this_event$`W3 Result`[i] == "L"){
+            new_ratings[W1-2] = prior_ratings[W1-2] + new_team1_rating - prior_team1_rating
+            new_ratings[W2-2] = prior_ratings[W2-2] + (new_team2_rating - prior_team2_rating) * (2/3)
+            new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * (1/3)
+          }
+          #Can add on if result occurs where both W2 and W3 are defeated simultaneously
+        }
+        else{#indicates W1 is part of the team in the handicap match
+          prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
+                                      as.double(prior_ratings[W2-2])))
+          prior_team2_rating = as.double(prior_ratings[W3-2]) / 2
+          new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
+          new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+          if(this_event$`W2 Result`[i] == "W"){
+            new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (2/3)
+            new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+            new_ratings[W3-2] = prior_ratings[W3-2] + new_team2_rating - prior_team2_rating
+          }
+          #Can add on if result occurs where both W1 and W2 defeat W3 simultaneously
+        }
+      }
+    }
     prior_ratings = new_ratings #Fixes issue with multiple matches at one show
   }
   return(new_ratings)
@@ -294,7 +333,7 @@ Ratings.long %>%
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.4.1 2013-2017",
+  labs(title = "TJPW Elo Ratings v2.4.2 2013-2017",
        subtitle = "s=400, k=20, Starting Value 1500")
 
 long.2017 %>% 
@@ -302,15 +341,15 @@ long.2017 %>%
   geom_line(size = 1) +
   scale_color_viridis_d() +
   geom_hline(yintercept = 1500) +
-  labs(title = "TJPW Elo Ratings v2.4.1 2013-2017 (only active in 2017)",
+  labs(title = "TJPW Elo Ratings v2.4.2 2013-2017 (only active in 2017)",
        subtitle = "s=400, k=20, Starting Value 1500")
 ```
 
 ```{r year-end}
-end2013 = Ratings[7, 3:7]
+end2013 = Ratings[7, 3:10]
 row.names(end2013) = "Elo Rating"
 
-end2014 = Ratings[28, 3:14]
+end2014 = Ratings[28, 3:15]
 row.names(end2014) = "Elo Rating"
 
 end2015 = Ratings[46, 3:21]
@@ -322,24 +361,32 @@ row.names(end2016) = "Elo Rating"
 end2017 = Ratings[111, 3:39]
 row.names(end2017) = "Elo Rating"
 
-Ratings.v2.4.1 = Ratings
+Ratings.v2.4.2 = Ratings
 ```
 
 ```{r yearly-changes}
-elo.change.2013 = end2013 - rep(1500, 5)
+elo.change.2013 = end2013 - rep(1500, 8)
 row.names(elo.change.2013) = "Rating Change"
 
-elo.change.2014 = end2014 - c(end2013, rep(1500, 7))
+elo.change.2014 = end2014 - c(end2013, rep(1500, 5))
 row.names(elo.change.2014) = "Rating Change"
   
-elo.change.2015 = end2015 - c(end2014, rep(1500,7))
+elo.change.2015 = end2015 - c(end2014, rep(1500, 6))
 row.names(elo.change.2015) = "Rating Change"
   
-elo.change.2016 = end2016 - c(end2015, rep(1500,6))
+elo.change.2016 = end2016 - c(end2015, rep(1500, 6))
 row.names(elo.change.2016) = "Rating Change"
 
 elo.change.2017 = end2017 - c(end2016, rep(1500,12))
 row.names(elo.change.2017) = "Rating Change"
+
+yearend.df = Ratings[c(7, 28, 46, 79, 111), 3:39]
+row.names(yearend.df) = c("2013", "2014", "2015", "2016", "2017")
+elo.change.df = rbind(yearend.df[1,] - rep(1500, 37),
+                      yearend.df[2,] - c(yearend.df[1, 1:8], rep(1500, 29)),
+                      yearend.df[3,] - c(yearend.df[2, 1:13], rep(1500, 24)),
+                      yearend.df[4,] - c(yearend.df[3, 1:19], rep(1500, 18)),
+                      yearend.df[5,] - c(yearend.df[4, 1:25], rep(1500, 12)))
 ```
 
 
@@ -526,3 +573,21 @@ I just realized that there were two matches in 2017 where the result was a doubl
 ## End of day thoughts
 
 I added in the double countouts. Not a lot of changes outside of the wrestlers directly involved. I should be able to easily add any future draw type match decisions into the "draws" character vector and have them included in the calculations. It's late; I'm tired. I'll save 1v2 handicap matches for next time and elimination matches for the time after that. At that point, I should be able to get back to data entry. It'll take some plugging away, but I'll get through 2021 eventually.
+
+# 1/3/22 Thoughts
+
+## 1v2 Handicap Programming
+
+Got it in there, and I think it should work to capture the two matches in the data base. Handicap matches are a little tough to code since you need extra if-else statements just to figure out which side has how many wrestlers. Both matches so far had Wrestler 1 beat the team of Wrestlers 2 and 3, but that doesn't mean future matches can't be different. I left space to program in scenarios where both wrestlers on the team with 2 win or lose the match simultaneously. I also put in a spot for draws that I can code later if there are any. Hopefully there aren't too many iterations of handicap matches in the future. Anyways, time to run the code and see that it works correctly.
+
+## End of day thoughts
+
+The handicap code ran correctly, yay.
+
+I've also created dataframes for the end of year ratings and the yearly changes in ratings. I still might want to mess around with the changes one to include starting values other than 1500, but this was easier for now.
+
+I should probably move this journal style log to a separate markdown file.
+
+It might be a good idea at some point to make the specific match type chunks of the calculation function into their own functions. That function is very long right now and is only going to get longer.
+
+Elimination matches are next; they will be programmed.
