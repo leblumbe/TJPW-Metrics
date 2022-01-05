@@ -1,0 +1,212 @@
+---
+title: "TJPW Metrics Development Journal"
+author: "Lester Blumberg"
+date: "1/5/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Including Tag Matches
+
+I'm not sure the best way to approach this, but it feels like a wrestler should not gain or lose as many points for a tag match as for a singles match. One approach would be to see that the total points gained or lost for a team is roughly equivalent to the points gained or lost for a wrestler in a singles match.
+
+The other questions are how to determine how much each member of a team gains and loses and which wrestler from the opposing team they gain and lose from. Should the team member who picks up the win get 75% of team points? 2/3? Should the team member who is defeated lose 75% of team points? 2/3?
+
+# Including 3-Way Matches
+
+This is another difficult consideration. Clearly, the winning wrestler deserves to gain points, and the wrestler who is defeated deserves to lose points. However, how should I consider the wrestler who is not involved in the decision? Also, how should the points transaction compare to a 1v1 singles match? While a 3-way victory is impressive, the accomplishment is not the same as defeating a wrestler 1 on 1.
+
+# Other match types
+
+Decisions made for tag and 3-way matches should be instructive and consistent with how I include match types not seen yet, such as multi-person tag matches (3v3, 4v4, etc), free-for-all matches with more than 3 competitors (4-way, battle royal, etc), and 3-way and 4-way tag matches.
+
+# Titles and Tournaments
+
+2014 sees the first edition of the Tokyo Princess Cup, a single elimination tournament featuring 8 wrestlers. Should each match be treated purely as a singles match? Should there be any kind of bonus for reaching a certain round or winning the whole thing? Similarly, when titles enter the picture, should title matches be treated as ordinary matches? Elo ratings are constructed to give and take points equally. Would I have to take extra points away from the loser of a tournament or title match to give those points to the winner? Would that be the right call?
+
+# Matches outside of TJPW
+
+TJPW wrestlers competed in dark matches at DDT Peter Pan in both 2013 and 2014. These matches are theoretically no different from matches that would take place as part of a TJPW show. Should I include them in the ratings? Should this exception only be made for TJPW offer matches at DDT shows or also for offer matches at other promotions' shows (if they exist)?
+
+# Handling irregular and outside wrestlers
+
+Without ratings for the larger joshi wrestling scene, it will be difficult to give proper ratings to outsiders who come into TJPW for special matches every so often, such as Aja Kong or Meiko Satomura. Saki Akai is one such wrestler already in the dataset, with only 2 matches in TJPW. With enough matches, any new wrestler should be fairly quickly moved in the right direction in the ratings, but there might not be enough matches for all outsiders. Should special ratings be given to debuting outside wrestlers whose body of work makes it clear that they are far beyond a rookie TJPW wrestler?
+
+# Match Duration
+
+Match duration is anecdotally linked to wrestler parity. Early on, many of the matches are short because all of the wrestlers are fairly new to the sport. However, there will be larger disparities in wrestler experience in the future. It only follows that a wrestler in their first year will be defeated by a strong wrestler more quickly than they would if they faced off two years later. Should the duration of a match play a role in the ratings change for the match?
+
+# Post 2015 Data Thoughts
+
+## Wrestlers with new names
+
+Ririko Kendo became Rika Tatsumi. This is not a gimmick change. Just a new name. I'll need to devise a way to have them count as the same person, possibly just manually. Also, Saki Akai will be difficult. I'll have to see if Saki Akamiya counts enough as an entirely different person to just make separate, but I know that Sakisama is coming. It seems like that's just a continuation of Biishiki-Gun Saki Akai. This will take some consideration.
+
+## Tag Points
+
+Tag teams must be included. The ratings are missing too much right now. I think just pool the wrestlers on each team for average team ratings and treat the match like a singles match between two wrestlers with those ratings. Then just divvy up for who defeated whom.
+
+## Tag Bonus
+
+It might be a good idea to add a tag bonus to the prior rating for teams that have teamed up before. While there are not a lot of designated teams, they do exist, and it does seem like they perform better than just a random assortment of wrestlers. Two ideas for a bonus: either based on # of previous matches (total or in a given period of time) or based on prior win percentage as a team.
+
+## Battle Royal
+
+Still no clue how to factor that in. My best thought is to give rating points to the winner, give a small amount to the runner up, and take small but equal amounts from every other participant to make this happen. In the end, I think that winning a battle royal should be worth more than just winning an individual match. Maybe this will be reflected through expected outcome.
+
+## 3 way
+
+Still unsure about this too. Maybe play with expected outcome (starting from 1/3 instead of 1/2) like battle royal idea.
+
+# V2 Complete
+
+## Tag Team Functionality
+
+This is a good starting point. Currently, the member of the team who scores the victory gets 2/3 of the credit. Similarly, the defeated member gets hit with 2/3 of the penalty.
+
+## Six Person Tag
+
+Probably just similar to 2v2 tag. Maybe start with a breakdown of 1/2, 1/4, 1/4 for the three team members with the half going to the person getting the win/being defeated.
+
+## Using the ratings to answer some questions
+
+Once I have enough data being fed in, I should be able to use my ratings to answer some of my questions for fine tuning, such as tag bonus and how to treat outside wrestlers.
+
+# 12/21/21 Notes
+
+I have realized that my function to calculate ratings for an individual event have a flaw for when a wrestler has more than one match at an event. While this is a fairly rare occurrence, it does happen a few times, especially for the semifinals and finals of the Princess Cup. I believe this should be a simple fix where I have the prior ratings update at the end of the for loop for each individual match. This should also enable me to undo the Ai Shimizu Appearance patch and go back to treating that as one event. If I ever want to check what the elo ratings would be in the middle of a show, it shouldn't be that hard to figure out manually.
+
+## Post-Implementation
+
+The change seems to have worked and was very simple. Now, I'll try to remove the Ai Shimizu Appearance patch and see if the results are the same.
+
+## Post Patch Removal
+
+Took it out. It's all still good. Next step is to add in trios matches.
+
+## Post Trios
+
+Pretty simple inclusion. Currently 1/2 credit to victor and defeated. 1/4 to other team participants.
+
+## Post Threeway
+
+Well, the implementation works. Might need changes later if more types of 3 way finishes occur. Currently, the expected outcome is derived by taking the sum of expected outcomes against each opponent and dividing by 3. This sums to 1 for the three competitors and seems to make sense. For the actual outcome, in a typical match with one winner, one defeated participant, and one loser not involved in the decision, I am currently giving 2/3 as the outcome to the winner, 0 to the main loser, and 1/3 to the uninvolved party. Other considerations are 3/4 to the winner and 1/4 to uninvolved as it feels like there should at least be a slight penalty for not winning. Another idea is to try to give the winner the same boost in a completely even match that they would get in a singles match, which requires the actual outcome being 0.5 greater than the expected outcome. So this would set the actual outcomes at 5/6 for the winner and 1/6 for the loser. This approach has the effect of making the gain equal for the two match types when the competitors are closer in prior rating but gives more credit to the winner of a 3 way match than the winner of a singles match when the winner has a much higher prior rating than the other competitors.
+
+This will take more thought in the future and will probably be easier to determine when there is more data.
+
+As of right now, the only matches not in the system are a battle royal and a handicap match. I do not wish to program ratings for these until I have more of each.
+
+## V2.3.1
+
+I flipped and decided to make the outcomes 5/6 and 1/6 for 3 way matches. After looking at it a bit, I think that this helps to make sure that the winners get around the same boost as winning a singles match. Also, the uninvolved loser still takes some penalty, which is fair since the goal of wrestling is to win the match. Also, the penalty is still about half of what it would be if they were the defeated loser, so they are still shielded some. I will probably leave this alone for now and focus more on adding 2016 into the dataset.
+
+# 12/22/21 Notes
+
+I finished data entry for 2016 last night. No new Battle Royals this year. There is one match of a new type though. There was a threeway elimination match. I might wait before coding its inclusion just to see if there are more matches like this in 2017 or 2018. 2016 also saw a few instances of multiple shows on the same day. I fixed an issue with creating the Ratings dataframe that should fix any possible issues there. I also removed the one match from a DDT show that I had been including. Looking at Cagematch shows that there are a number of these matches that occur over the years. For now, it is best to exclude them. I can always go back and add them in later. One exception will be if any important matches (such as a title match) take place on a DDT show.
+
+## Titles
+
+2016 sees the introduction of the (at this point in time) TOKYO Princess Of Princess Title. Yamashita holds it for most of the year, but impressive rookie Yuu wins it off of her. Because I'm currently using an ELO rating, I don't think I should give any special significance to title matches. However, I am noting them in the spreadsheet. If I move on to a more customized metric, I will definitely look at including title reigns, title matches, and #1 contender matches.
+
+## Mil Clown
+
+Late in 2016, Yuka Sakazaki departs to Magic Country while her twin sister Mil Clown arrives in her place. Mil Clown has a better performance record than her sister. It is tempting to combine their matches, but they are two different people. I will keep them separate for now.
+
+## Post 2016 Data Inclusion
+
+Really interesting stuff. The greater number of events and matches leads to some big changes. Yuu gets the Samoa Joe build and gains 125 on top of the 1510 she ended 2015 with after her debut. Yuka and Shoko also see big jumps this year. Yuka isn't quite back to 1500 yet, but if I were to include her sister's matches as hers, she would definitely get there. Shoko's big year sees her become the 3rd wrestler behind Miyu and Yuu to cross the 1600 barrier. Once I include the elimination match, she'll only end the year even higher. There are also big losses, even bigger than the big gains. Azusa Takigawa ends 2016 in hot pursuit of a husband; for her sake, I hope she's found the bottom of the Elo Ratings. She dropped a whopping 166 points in the ratings. She finishes the year with the worst rating seen so far, and she has gone over a year into her career having never seen her rating improve once from a match. Nonoko teaming with her is a true sign of friendship. Rookies Nodoka and Marika have also seen their initial ratings fall over 100 points in 2016. This will probably become common occurrence for rookies since they will be wrestling a large number of matches and have a roster full of wrestlers more experienced than them.
+
+One interesting note is that Miyu has only posted small gains of 12 and 25 in '15 and '16 respectively. I wonder if this will become a trend that my current rating system has somewhat of an upper bound or if it will be easier for Miyu to climb higher when more wrestlers get over 1600.
+
+We're starting to see some veterans like Hyper Misao and Rika win more matches. 2017 might be the year we see them get above and stay above 1500.
+
+## Elimination Match
+
+If there isn't another one in 2017, I'll program it in. Since the result was Shoko pinning both Akane and Miyu, Shoko will definitely get full credit for the win. I feel that an elimination match should count for more than one standard match, singles or threeway. Perhaps the best way to treat it is as two matches. A threeway first and then a singles match between the remaining competitors. If I were to do that, I would want to credit differently for the first part than 5/6 and 1/6 since the remaining competitor should not be penalized for not being involved in the first elimination. Part of an elimination match is just sticking around as long as you can. It makes sense to reward Shoko for the first pinfall because any time you pin an opponent is an example of your wrestling prowess. Another option is to treat it as two singles matches, but I feel that this might understate the likelihood of losing the match during the first stage. This will take some thought. It might be good to peruse the remaining years to see if there are any more of these matches. If there are, then I can code it in a way to be flexible for future match inclusion.
+
+# Pre 2017 Data Notes
+
+## Outside Wrestlers
+
+This is definitely going to be a bit of an issue. Meiko Satomura defeated Miyu Yamashita in a singles match. This makes sense, but Meiko will currently be treated as a wrestler with a 1500 rating. A fair rating for her would obviously be far above any wrestler in TJPW. I will observe how much this match affects Miyu's rating first, but I do have a few ideas for how to treat outside wrestlers. I think the best approach is to have them start at 1500 plus a value for past experience. This can be done by 1) number of years in wrestling or 2) number of career matches. For years, I think either 10 or 20 ratings points per year should be decent. 10 is probably too low, but being a little conservative isn't the worst idea. For matches, I'm not as sure; I'll have to check on how many matches each of the outside wrestlers had before coming to TJPW. 1 point per match might be sufficient though.
+
+The only other consideration is whether to change a wrestler's rating between appearances in TJPW. I believe that the only wrestler so far to make two appearances at least a year apart is Candice LeRae. If these incidents are few in number, it probably will not need addressing.
+
+## Tag Team Ratings
+
+For now this is a separate thought from the Elo Ratings, but it might be fun to look at doing Tag Team Elo Ratings too. 2017 sees TJPW add tag titles, which means that there are now going to be more dedicated tag teams going forward. Starting ratings for any 1st time tag team would need to be informed by the current singles ratings. The question is then do you keep using the singles ratings as part of tag team ratings even after a team's 1st match. It's possible that a far more complex version of these ratings could see singles and tag ratings developed side-by-side. The Elo points gained and lost in tag matches would then be divided up between the tag rating and the two wrestlers' singles ratings. This could become fairly complicated as 6-person and greater tag matches become more common with the growth of the roster. I imagine that this will be an issue best explored after I finish getting all the data through 2021 into the ratings.
+
+# Post 2017 Data Notes
+
+## Prior Experience
+
+I have determined that I need to include prior experience when determining the starting rating for a wrestler. Most TJPW wrestlers will start at 1500, but there are a few exceptions, most notably Mizuki. After examining the number of matches and years wrestled for the wrestlers, I have decided upon starting with 20 ratings points per year wrestled. For most of the wrestlers, this would produce a similar result to 1 point per match wrestled. However, a few wrestlers would see ratings well over 2000 if I were to go 1 point per match. 20 points per year should be sufficient. It makes sure that any wrestler with a LONG career prior to their first TJPW match is rated above the TJPW roster. The only rough result from this process is Shiro Koshinaka, whose rating will drag his trios team's rating up quite a bit, especially since Yukio Saint Laurent does not have any know prior wrestling experience. This will serve to diminish the bump up that Rika and Maho get from this match, but this is a fairly small effect and should be balanced out by the gains wrestlers see in other matches against outside wrestlers.
+
+# Post adding prior experience (v2.4)
+
+## Results
+
+Great success! Most of the changes aren't very big, but they're almost all positive. This makes sense because Elo ratings are a zero-sum game. If you pump more points into the system, then almost everyone will see their ratings increase. What I am happy to see though is that the wrestlers who wrestled against outsiders directly saw their ratings increase the most. Miyu saw the largest increase for a wrestler who started in TJPW, moving up about 11.3 points. The only wrestler adversely affected is Rika, who loses about one point. This was to be expected with Shiro Koshinaka being bumped up so much, but it's a small decrease. Perhaps a future version of this could see more of an exponential relationship between years wrestled and starting rating, with the bonus always increasing but at a declining rate.
+
+## Other Thoughts
+
+I should probably just create a vector or dataframe of initial ratings to simplify the code of the calculation function. Then I can also make any tweaks outside of the function to make sure that they're being applied properly. This could also make for accurate yearly change numbers pretty easily.
+
+I should probably also just make the yearly end ratings and ratings changes into dataframes with the years as rows. Could allow me to make some different plots more easily.
+
+It's probably time to program the elimination match. I can just leave it flexible enough to add to if there is another elimination match later. As far as the battle royal, it looks like there is another one in 2018, so I'll wait on it.
+
+Looking ahead, I also see that 2018 has some other varied match types: one count, two count, best of 3 falls, and a 3v2 handicap. These will all take some thought to be implemented properly. I believe that there might also be a 1v2 handicap match from some point that hasn't been implemented yet. I should probably get around to that with the 2018 data too.
+
+Some other plots to toy with could be ones that break things up into smaller chunks (yearly?) as well as ones that highlight a specific wrestler or two, possibly graying and fading out the other wrestlers. I could also try adding vertical lines to indicate title changes or shading the lines of wrestlers to show their title reigns. Could also try some kind of marker to show the winner of the Princess Cup. I would also like to try some options for ending a wrestler's line when they leave the promotion. This could help to create a plot that shows all of the rostered wrestlers over the years without becoming too cluttered over time.
+
+I'm looking forward to what the 2018 data brings. I'm pretty sure that Miyu is about to embark upon a year-long plus title reign. This should see her become the first wrestler in TJPW to clear 1700. Hopefully, this helps to raise the ceiling for the company and allows more wrestlers to climb higher in 2018 and future years.
+
+# 1/2/22 Thoughts
+
+## Programming new match types
+
+### Handicap
+
+First up are the two 1v2 handicap matches in the existing database that need to be programmed. I considered trying to program them as variations on threeway matches or tag matches. I've decided on tag matches since handicap matches essentially are tag matches with a missing partner or two. I'm currently treating tag matches as a singles match between two competitors whose ratings are the averages of the team members' ratings. I hadn't put a lot of thought into the possibility of treating them as sums of the ratings instead, but I'm glad that I didn't. Without changing s in the expected outcome formula to be higher than 400, using sums would lead to more extreme expected outcomes and therefore larger ratings changes. Treating these matches as averages instead keeps all the matches on a similar scale. However, it's possible that playing around with this scaling for tag matches could produce more accurate ratings in the end. It can be something that I consider testing in the future.
+
+To keep with the idea of treating handicap matches like tag matches and keeping things on the same scale, my process at this time will be to treat the larger side of the handicap match as what the size of a full team would be. I will then treat the difference between this number and the actual number of wrestlers on the smaller team as the number of missing wrestlers, who will have a rating of 0. So for a 1v2 handicap match, the full number of wrestlers for a team is 2. The larger team's rating will be calculated like a normal tag team, as an average of the two wrestlers' ratings. The side with just one wrestler will be treated as having one missing wrestler. Its rating will be an average of the one existing wrestler and 0; I will just halve the one wrestler's rating.
+
+In most cases, this process should produce a very low likelihood of winning for the side with one wrestler, but this is probably the way it should be. One individual wrestler SHOULD have a tiny chance of beating a team of two wrestlers. If they do win (as I know they do in both matches so far in the database), then this is an achievement worth a large increase in rating.
+
+One other thing I like about this approach is that it should scale well to handicap matches of all sizes (just as my tag approach scales well to 3v3 and larger matches). What's also good is that the difference between the two sides in the match should grow smaller as the number of competitors on both sides increases equally. The 2 in a 2v3 match has a better chance of winning than the 1 in a 1v2; the 3 in a 3v4 match will then also have an even greater chance of winning. This will be the mathematical result and makes sense logically.
+
+I'll code the 1v2 to allow for draws (as I do all match types). I'll also try to code it in a flexible enough way to allow for any possible matches where the 2 side wins.
+
+### Elimination
+
+I'll figure this one out at some point over the next week. It's late, so I'll just take care of 1v2 handicap matches for the night.
+
+## Missed Results
+
+I just realized that there were two matches in 2017 where the result was a double countout. I don't think that's programmed in to count as a draw, which means that my ratings might be counting the wrestlers as winners and losers instead. I'll check this and fix it if necessary.
+
+## End of day thoughts
+
+I added in the double countouts. Not a lot of changes outside of the wrestlers directly involved. I should be able to easily add any future draw type match decisions into the "draws" character vector and have them included in the calculations. It's late; I'm tired. I'll save 1v2 handicap matches for next time and elimination matches for the time after that. At that point, I should be able to get back to data entry. It'll take some plugging away, but I'll get through 2021 eventually.
+
+# 1/3/22 Thoughts
+
+## 1v2 Handicap Programming
+
+Got it in there, and I think it should work to capture the two matches in the data base. Handicap matches are a little tough to code since you need extra if-else statements just to figure out which side has how many wrestlers. Both matches so far had Wrestler 1 beat the team of Wrestlers 2 and 3, but that doesn't mean future matches can't be different. I left space to program in scenarios where both wrestlers on the team with 2 win or lose the match simultaneously. I also put in a spot for draws that I can code later if there are any. Hopefully there aren't too many iterations of handicap matches in the future. Anyways, time to run the code and see that it works correctly.
+
+## End of day thoughts
+
+The handicap code ran correctly, yay.
+
+I've also created dataframes for the end of year ratings and the yearly changes in ratings. I still might want to mess around with the changes one to include starting values other than 1500, but this was easier for now.
+
+I should probably move this journal style log to a separate markdown file.
+
+It might be a good idea at some point to make the specific match type chunks of the calculation function into their own functions. That function is very long right now and is only going to get longer.
+
+Elimination matches are next; they will be programmed.
