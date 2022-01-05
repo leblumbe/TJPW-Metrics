@@ -42,6 +42,15 @@ threeway = tjpw %>%
 
 sixperson = tjpw %>% 
   filter(`Match Type` == "6 Person Tag")
+
+handicap = tjpw %>% 
+  filter(`Match Type` %in% c("1 v 2 Handicap"))
+
+elimination = tjpw %>% 
+  filter(`Match Type` == "Elimination")
+
+battle_royal = tjpw %>% 
+  filter(`Match Type` == "Battle Royal")
 ```
 
 ```{r}
