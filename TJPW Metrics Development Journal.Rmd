@@ -210,3 +210,37 @@ I should probably move this journal style log to a separate markdown file.
 It might be a good idea at some point to make the specific match type chunks of the calculation function into their own functions. That function is very long right now and is only going to get longer.
 
 Elimination matches are next; they will be programmed.
+
+# 1/4/22 Thoughts
+
+## Time for Elimination Matches
+
+### Prep
+
+I prepped the data for this by changing the way I enter in the match results for elimination matches. What I am now doing for these matches is giving every wrestler who survives an elimination a "W", with the "W-asterisk" going to the wrestler(s) responsible for the elimination. The eliminated wrestler receives an "L". When the match is down to two wrestlers, the winner simply earns a standard "W". For the only elimination match through 2017, Shoko Nakajima eliminates both Akane Miura and Miyu Yamashita in that order. So Shoko's result is "W-asterisk-W". Miyu's is "WL". Akane's result is simply "L". This format can be easily adapted to singles elimination matches with more than 3 starting wrestlers. I'm not sure if there are any elimination tag matches in the future, but I would think some combination of this method and the normal tag team method would work for that kind of match.
+
+### Result Types
+
+It is now time to code in elimination matches. I don't know that I even need to leave open the possibility for draws; while I suppose they are theoretically possible, I don't think we will ever see one in an elimination match. I'll probably just code the observed match result in an if statement, leaving room for other if statements for future match results. Since this match type is rare, I don't think I need to exhaustively program in all possible results. I can instead add them as they occur.
+
+### Expected and Actual Results
+
+The expected result for the final part of an elimination match is fairly easy. There are two wrestlers left who are both trying to beat each other. Therefore, we can treat it like a singles match between the two of them. The more difficult task is how to treat the preceding portion(s) of the match. I think it is best to take a goals-oriented approach.
+
+The goal for a wrestler in an elimination match is simply to avoid elimination. So if there are 3 wrestlers in the match, two will succeed in the first part while one fails. From this perspective, I can do the reverse of the calculations of expected outcomes for a threeway match. There, I divide by 3 the sum of the expected outcomes for a wrestler against each of their opponents. Here instead, I will divide by 3 the sum of the reverse expected outcomes. I will add the odds of a wrestler losing to each of their opponents and then divide by 3. This is an estimate of the probability that a wrestler is the one eliminated in this part of the match. Then a wrestler's expected outcome (or probability of remaining in the match) will just be 1 minus this probability of being eliminated.
+
+Mathematically, this doesn't seem flawed on the surface. The three expected outcomes sum to 2, which works because 2 wrestlers do advance. The wrestler who is eliminated will have an actual outcome of 0 and lose a decent amount of ratings points even if they're the lowest rated wrestler in the match. This tracks since advancing past this part of the match should be easier than winning a singles match.
+
+My big remaining question for this part of the match is how do I credit the two wrestlers who advance given that only one of them was involved in the elimination. While survival is the main goal of the match, it is still a display of wrestling prowess and skill to defeat an opponent. Imagine a 5-person elimination match where one wrestler eliminates all 4 of their opponents. This would be a dominant performance, and it would only seem right that the winning wrestler gain more ratings points at each elimination than the wrestlers who merely moved on in the match. So if I am not going to give all remaining wrestlers an actual outcome of 1 for this part of the match, what should their actual outcome be? Well, we will always have a lower bound for the surviving wrestler (the one not involved in the elimination). Since it would be extremely wrong to dock them ratings points just for not being involved in the elimination, the surviving wrestler's actual outcome can never be lower than their odds of advancing in the match. Anything less than this would result in a loss of ratings points, while an actual outcome at the lower bound would result in no change. It might not be mathematically founded, but my best idea right now is to just set the actual outcome for the surviving wrestler halfway between 1 and their lower bound. Then this amount being subtracted from 1, which is just half the surviving wrestler's probability of being eliminated, would also be added onto 1 to find the actual outcome for the wrestler responsible for the elimination.
+
+There might be a better, more elegant, or more mathematical solution to this, but I think that this will suffice for now. I'm especially unsure of how this method will scale up for elimination matches with more than 3 starting wrestlers, but I'll cross that bridge when I come to it.
+
+The final consideration is whether I should update the wrestlers' ratings between parts of the match. I could see an argument in favor of doing it, but I don't think I want to. It seems better to only update a wrestler's rating after the conclusion of a match. Considering that the main goal of the match is to win the whole thing by being the last one remaining, it would not be right to update the ratings until after this goal has been achieved.
+
+### Implementation
+
+I think that the best way to go about this is to create a new expected outcome function specifically for elimination matches that could then feed into a newly created function for determining new ratings after elimination matches. I could even include an argument for the number of wrestlers and leave the functions open to be easily added onto if such elimination matches occur after 2017.
+
+## End of day thoughts
+
+It's late again, and this will have to wait for another day. However, now that I have determined a course of action, I believe that I should be able to jump right into programming in elimination matches when I come back to this. Once I'm satisfied that the code is running properly and producing sensible enough results, I will begin data entry for 2018. Some topics to revisit down the line (but definitely not right now) are: exhibition matches, battle royals, TJPW offer matches on DDT shows, tag teams/bonuses.
