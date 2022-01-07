@@ -63,18 +63,32 @@ expected <- function(ra, rb, s = 400){
   expected_outcome = 1 / (1 + 10^((rb - ra)/s))
   return(expected_outcome)
 } 
+
+expected_threeway <- function(ra, rb, rc){
+  expected_outcome_threeway = (expected(ra, rb) + expected(ra, rc)) / 3
+  return(expected_outcome_threeway)
+}
+
+expected_elim3 <- function(ra, rb, rc){
+  expected_outcome_elim3 = 1 - ((expected(rb, ra) + expected(rc, ra)) / 3)
+  return(expected_outcome_elim3)
+}
 ```
 
 Formula for New Rating
 ```{r new-rating-function}
-new_rating <- function(ra, rb, outcome, k = 20){
-  new = ra + k * (outcome - expected(ra, rb))
+new_rating <- function(r1, r2, outcome, k = 20){
+  new = r1 + k * (outcome - expected(r1, r2))
   return(new)
 }
 
 new_rating_threeway <- function(r1, r2, r3, outcome, k = 20){
-  expected_threeway = (expected(r1, r2) + expected(r1, r3)) / 3
-  new = r1 + k * (outcome - expected_threeway)
+  new = r1 + k * (outcome - expected_threeway(r1, r2, r3))
+  return(new)
+}
+
+new_rating_elim3 <- function(r1, r2, r3, outcome, k = 20){
+  new = r1 + k * (outcome - expected_elim3(r1, r2, r3))
   return(new)
 }
 ```
