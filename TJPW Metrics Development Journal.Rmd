@@ -244,3 +244,19 @@ I think that the best way to go about this is to create a new expected outcome f
 ## End of day thoughts
 
 It's late again, and this will have to wait for another day. However, now that I have determined a course of action, I believe that I should be able to jump right into programming in elimination matches when I come back to this. Once I'm satisfied that the code is running properly and producing sensible enough results, I will begin data entry for 2018. Some topics to revisit down the line (but definitely not right now) are: exhibition matches, battle royals, TJPW offer matches on DDT shows, tag teams/bonuses.
+
+# 1/6/22 Thoughts
+
+## Elimination Match Programming
+
+I'm just going to create separate functions for three-person elimination matches. Once I have finalized the approach, it should scale up pretty easily to elimination matches with more starting wrestlers. I think I can still just make one if chunk of the calculation function for all elimination singles matches. I can use if-else statements to check how many wrestlers start in the match and produce results accordingly.
+
+## Post implementation
+
+I decided to go with halfway between 1 and Wrestler 2's lower bound (their expected outcome for the first stage of the match) as the actual outcome for Wrestler 2 in the first part of the match. Therefore, the amount subtracted from 1 for wrestler 2 was then in turn added onto 1 for Wrestler 1's actual outcome. I think this works well for the match in the system already and should also work well for larger elimination matches. This way wrestlers get a bonus for avoiding elimination but get a larger boost for actually eliminating an opponent.
+
+I also decided to not update the ratings for Wrestlers 1 and 2 between the two parts of the match. I'm not sure if there's a great reason for doing it this way or the other way, but I like the consistency of only updating a wrestler's rating once a match has ended.
+
+## End of day thoughts
+
+Just about the only real match I don't have in here right now is the battle royal. I'll still wait on this one (although that should be another match that will boost Shoko quite a bit). I'm done programming for now. Time to turn my efforts toward data entry. 2018 ahoy!
