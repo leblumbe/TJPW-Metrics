@@ -163,7 +163,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
 ```{r current-calculation-function}
-#V2.4.2 (Added 1v2 handicaps)
+#V2.4.3 (Added elimination singles matches)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -324,6 +324,23 @@ calculate_new_ratings2 <- function(indiv_event){
         }
       }
     }
+    if(this_event$`Match Type`[i] == "Elimination"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      if(is.na(this_event$`Wrestler 4`[i])){
+        if(this_event$`W1 Result`[i] == "W*W"){
+          w1.part1 = new_rating_elim3(prior_ratings[W1-2], prior_ratings[W2-2], prior_ratings[W3-2], 1 + ((1 - expected_elim3(prior_ratings[W2-2], prior_ratings[W1-2], prior_ratings[W3-2])) / 2)) - prior_ratings[W1-2]
+          new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1) + w1.part1
+          w2.part1 = new_rating_elim3(prior_ratings[W2-2], prior_ratings[W1-2], prior_ratings[W3-2], 1 - ((1 - expected_elim3(prior_ratings[W2-2], prior_ratings[W1-2], prior_ratings[W3-2])) / 2)) - prior_ratings[W2-2]
+          new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0) + w2.part1
+          new_ratings[W3-2] = new_rating_elim3(prior_ratings[W3-2], prior_ratings[W2-2], prior_ratings[W1-2], 0)
+        }
+      }
+    }
     prior_ratings = new_ratings #Fixes issue with multiple matches at one show
   }
   return(new_ratings)
@@ -384,7 +401,8 @@ row.names(end2016) = "Elo Rating"
 end2017 = Ratings[111, 3:39]
 row.names(end2017) = "Elo Rating"
 
-Ratings.v2.4.2 = Ratings
+Ratings.v2.4.3 = Ratings
+write.table(Ratings.v2.4.3, "TJPW Elo Ratings v2.4.3.csv")
 ```
 
 ```{r yearly-changes}
