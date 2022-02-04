@@ -260,3 +260,61 @@ I also decided to not update the ratings for Wrestlers 1 and 2 between the two p
 ## End of day thoughts
 
 Just about the only real match I don't have in here right now is the battle royal. I'll still wait on this one (although that should be another match that will boost Shoko quite a bit). I'm done programming for now. Time to turn my efforts toward data entry. 2018 ahoy!
+
+# 2/3/22 Thoughts
+
+Wow. I can't believe it's almost been a month since I touched this. Well, the holidays ended, I've been back to work, and I haven't had much free time on the weekends. Also, 2018 was a lot of data to enter into the spreadsheet. About 100 more matches than 2017. The good news is that I am finished with that and now ready to add that data into R.
+
+## Match Types
+
+We saw some new match types in 2018. We had a 2v3 handicap match. For this one, I already worked out how to do handicap matches. I will treat it as a 3v3 match where the third wrestler on the smaller team has a rating of 0. We saw the first 8 person tag match late in the year. This is not surprising as the roster has now grown to the ponit that 6 person tag matches occur pretty regularly. This will be easy to implement; it will work the same way as a tag or 6 person tag match. We also had a special retirement match for Azusa Takigawa where every wrestler on the roster faced off against her. Before I consider how to include a match like this, I need to consider even if I should include this match. It won't matter for Azusa since it's her last match. From what I can tell, these retirement matches are more ceremony than contest. I feel pretty confident that I should leave it out.
+
+There was also a 2nd battle royal match. I need to add this match type in. The question is do I just reward the winner while taking small amounts from all the other competitors or do I attempt to maximize the information I know. For the 2018 battle royal, I actually have information about all of the eliminations. Therefore, I could attempt to give and take points for eliminations as well as for the overall match result. Unfortunately, I do not currently have that kind of information for the 2015 battle royal. The best I could do there is give some small bonus to the wrestler who came in 2nd. Hopefully, this video will be added to the new Wrestle Universe at some point. other things I can use to give out points for battle royals are entrance order and time of survival. I'll probably just start with points for the winner so that the matches are included in some way and because the winner is the most important part of the match.
+
+## Match Rules
+
+2018 also saw the introduction of different rules for matches. We had a best 2 of 3 falls 6 person tag match. There were also singles matches with 1 count rules (a rematch of a double countout) and 2 count rules. Then there was the dance match. I watched the dance match to better understand how to include it. I think I'll just treat it as a regular singles match since there was still plenty of wrestling. It also appeared that the wrestlers could win via pinfall or submission too. Also, part of the strategy of the match was beating up your opponent enough so that you had time to finish the dance. In a way, this is not too different from a ladder match. The other match rules, however, will require some changes.
+
+I will also need to consider how to tell my functions to treat these matches differently. Currently, I have a column in the dataset for Match Type but not for Match Rule or Special Rule. I think that the easiest way is probably just to add a Special Rule column, which will be used only for matches with rules different from a standard wrestling match. However, I will have to add a check into potentially all of my match type chunks to first check if there are any special rules. This would require a lot of editing of my calculation function. It might just be best to only apply it where needed right now, so that I don't add in the possibility for coding mistakes where it's not needed.
+
+### 2 of 3 Falls
+
+This is a tricky match type. It is similar to an elimination match in that it features multiple falls. Therefore, I have to decide if I want each fall to count as if it were its own match. That would probably be the easiest solution for the observed match. TJPW had a best 2 of 3 falls 6 person tag match, with the winning team winning 2 falls to 1; the winning team also had two different wrestlers score the two falls. To figure the match in a different way would take some effort.
+
+Philosophically, the first fall in a match of this nature is the least important as neither wrestler/team can lose the match or win the match yet. The second fall gains importance because one wrestler/team can lose the match by losing the second fall. Therefore, winning is a must for them. The wrestler/team up 1-0 is also in a position to win the match on fall 2; however, it feels like it's not as urgent for them because they cannot also lose the match. The third fall, when it occurs, is obviously the most important fall. Both wrestlers/teams stand to win the match or lose the match based on the result. I'm still not sure what this means for implementation.
+
+One thing I am certain of is that a multiple falls match needs to count for more points than one match. I think that for now I will count each fall as worth the points of an individual match. The only other consideration is that each fall is not quite equivalent to an individual match because the wrestlers do not start fresh past the first fall. However, this should effect all wrestlers in a match, so I do not currently see a reason to account for this.
+
+I made the decision with elimination matches that I won't update wrestlers' ratings during a match. Therefore, it is easiest to keep the results of multiple falls matches on one row of my spreadsheet. I currently entered in each wrestler's result as either WLW or LWL, with the first letter corresponding to the first fall and so on. I have also inserted asterisks after a letter if that wrestler was part of the decision of the fall. Obviously, this part wouldn't be necessary for a singles match. As there probably won't be too many multiple fall 6 person tag matches, I will just code in the result types for this specific match. I can code in others if they happen in the future.
+
+### Less than 3 Count Rules
+
+My inclination is to say that the smaller a number of seconds needed to pin an opponent, the fewer ratings points that should change hands in a match. While the stronger wrestler/team would still be favored, it should be easier for the weaker wrestler/team to pull off an upset. It is easier to keep someone pinned for 2 seconds than for 3 seconds. I can approach this via the expected outcome function and/or the new rating function. By increasing the value of s in the former, I move the odds closer to 0.5 for all match participants, and by decreasing the value of k in the latter, I lower the number of ratings points that are exchanged in the match.
+
+I think that for now, I'll just manipulate k in the new rating function. Messing with s and the expected outcome function would require rewriting some things and doesn't produce a large difference when paired with the change to k. So for now my solution is to multiply k by 2/3 for a two count match and by 1/3 for a one count match. However, I will consider changing s at some point in the future. (This might be something that I can test out when I have a good sample of these matches; many more are coming in 2021.)
+
+## Wrestler Names
+
+My rule of thumb has been that I only treat gimmicks as separate if they are separate in kayfabe. Ririko Kendo is the same person as Rika Tatsumi; she just changed the name she went by. In 2018, Nodoka-Oneesan dropped her older sister gimmick and started going by Nodoka Tenma. However, this was fully acknowledged in kayfabe; the audience is not supposed to view the two as separate people. I probably need to go back in the spreadsheet and change all of the results for Oneesan to results for Tenma so that my functions treat the results as for the same person.
+
+One question is how to treat the results of the Fan Box Office show where Nodoka Tenma and Yuki Aino ate too much beforehand and were replaced by Mil Nodocaras and Yuki Caras, respectively. I'm not sure what the kayfabe is for this situation, and I know that it becomes a recurring thing for them to wrestle as other individuals on the Fan Box Office shows. I think that because these are one-off events and are done in a completely joking manner that I should just count them as normal results for Tenma and Aino. (However, there is some thought that I should be careful about including results from these shows; some weird things happen.)
+
+The Saki Akai vs Sakisama situation has to be addressed at some point. It's hard to tell without access to the old video, but it seems like the Saki Akai that wrestles in TJPW in 2013 is regular Saki Akai like you would see in DDT. At some point, she becomes a French aristocrat and starts Biishki-Gun; she essentially becomes Sakisama. However, she does not go by the name Sakisama at first. This won't happen until some time later. This has made things awkward for my system as Sakisama is not rated as highly as she should be; many of her matches are counted toward Saki Akai. This is especially strange now that Saki Akai has had a few matches in TJPW for the first time in a while. I think the right answer is to count Biishki-Gun Saki as Sakisama; anything before that should be Saki Akai. I might be able to watch the Joshizzle video again to get some idea if this is the right thing to do. I could also try reaching out to the guy who runs DramaticDDT; he should have a pretty good insight into the whole thing.
+
+## Shorter Time Limits
+
+From what I can tell, the standard time limits in 2021 were:
+15 minutes for a singles match
+20 minutes for tag matches or 3 way matches
+30 minutes for title matches
+No time limit for tournament matches
+
+I'm not sure at what point those became the standard TJPW time limits. On some occasions, matches have shorter time limits. One example is the Special Christmas matches that started in 2017. The Yeah! Metcha Tag Tournament also had shorter 10 minute time limits for the early rounds. I'm not quite sure if I need to treat time limit draws differently for these matches or not. It makes sense that a time limit draw is a more likely outcome in a shorter match. It also makes sense that wrestlers should not be as heavily rewarded/punished for a time limit draw in a shorter match. On the extreme side, Even a wrestler with a 99% chance of victory in a singles match wouldn't be expected to win the match if they only had one minute to do so. There are only a few instances of this so far, so I don't need to figure it out yet. However, I will need to do so eventually.
+
+## End of day thoughts
+
+I've pretty well thought out how to code in the new stuff found in 2018. I think that before I add the 2018 data in and run it, I should make some changes to my spreadsheet and code in some of the new stuff. Hopefully, I can get this done in the next 10 days.
+
+I also think that I need to create some kind of task list at the top of this document. I have lots of thoughts and ideas lying around this journal, but it's easy to lose track of them or forget them if I don't list them out in one place. I could even list the day(s) I discussed an idea so that I can more easily reference it.
+
+I'm done for tonight. I've got wretling to watch tomorrow, so it might be a few days until I get back to this.
