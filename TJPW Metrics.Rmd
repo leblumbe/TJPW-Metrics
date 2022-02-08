@@ -121,6 +121,10 @@ prior_exp = read_excel("TJPW Metrics.xlsx", sheet = 7)
 draws = c("Time Limit Draw", "Double Countout")
 ```
 
+```{r wins-and-losses-sets}
+wins = c("W", "W*")
+losses = c("L", "L*")
+```
 
 Create new dataframe for ratings with events, dates, and each wrestler as columns
 ```{r ratings-dataframe}
@@ -364,6 +368,29 @@ calculate_new_ratings2 <- function(indiv_event){
           }
           #Can add on if result occurs where both W1 and W2 defeat W3 simultaneously
         }
+      }
+    }
+    if(this_event$`Match Type`[i] == "2 v 3 Handicap"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
+      W5 = which(colnames(Ratings) == this_event$`Wrestler 5`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 4`[i])])
+      prior_ratings[W5-2] = ifelse(!is.na(prior_ratings[W5-2]), prior_ratings[W5-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 5`[i])])
+      if(this_event$Decision[i] %in% draws){
+# Left Blank to be filled in if necessary        
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
+      }
+      else{
+        
       }
     }
     if(this_event$`Match Type`[i] == "Elimination"){
