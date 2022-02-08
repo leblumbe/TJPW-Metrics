@@ -289,6 +289,66 @@ calculate_new_ratings2 <- function(indiv_event){
         new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
       }
     }
+    if(this_event$`Match Type`[i] == "8 Person Tag"){
+      W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
+      W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
+      W3 = which(colnames(Ratings) == this_event$`Wrestler 3`[i])
+      W4 = which(colnames(Ratings) == this_event$`Wrestler 4`[i])
+      W5 = which(colnames(Ratings) == this_event$`Wrestler 5`[i])
+      W6 = which(colnames(Ratings) == this_event$`Wrestler 6`[i])
+      W7 = which(colnames(Ratings) == this_event$`Wrestler 7`[i])
+      W8 = which(colnames(Ratings) == this_event$`Wrestler 8`[i])
+      prior_ratings[W1-2] = ifelse(!is.na(prior_ratings[W1-2]), prior_ratings[W1-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 1`[i])])
+      prior_ratings[W2-2] = ifelse(!is.na(prior_ratings[W2-2]), prior_ratings[W2-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 2`[i])])
+      prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
+      prior_ratings[W4-2] = ifelse(!is.na(prior_ratings[W4-2]), prior_ratings[W4-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 4`[i])])
+      prior_ratings[W5-2] = ifelse(!is.na(prior_ratings[W5-2]), prior_ratings[W5-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 5`[i])])
+      prior_ratings[W6-2] = ifelse(!is.na(prior_ratings[W6-2]), prior_ratings[W6-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 6`[i])])
+      prior_ratings[W7-2] = ifelse(!is.na(prior_ratings[W7-2]), prior_ratings[W7-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 7`[i])])
+      prior_ratings[W8-2] = ifelse(!is.na(prior_ratings[W8-2]), prior_ratings[W8-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 8`[i])])
+      prior_team1_rating = mean(c(as.double(prior_ratings[W1-2]),
+                                  as.double(prior_ratings[W2-2]),
+                                  as.double(prior_ratings[W3-2]),
+                                  as.double(prior_ratings[W4-2])))
+      prior_team2_rating = mean(c(as.double(prior_ratings[W5-2]),
+                                  as.double(prior_ratings[W6-2]),
+                                  as.double(prior_ratings[W7-2]),
+                                  as.double(prior_ratings[W8-2])))
+      if(this_event$Decision[i] %in% draws){
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 0.5)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0.5)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+        new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+        new_ratings[W7-2] = prior_ratings[W7-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+        new_ratings[W8-2] = prior_ratings[W8-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
+        new_ratings[W4-2] = prior_ratings[W4-2]
+        new_ratings[W5-2] = prior_ratings[W5-2]
+        new_ratings[W6-2] = prior_ratings[W6-2]
+        new_ratings[W7-2] = prior_ratings[W7-2]
+        new_ratings[W8-2] = prior_ratings[W8-2]
+      }
+      else{
+        new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
+        new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (2/5)
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/5)
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/5)
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team1_rating - prior_team1_rating) * (1/5)
+        new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (2/5)
+        new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/5)
+        new_ratings[W7-2] = prior_ratings[W7-2] + (new_team2_rating - prior_team2_rating) * (1/5)
+        new_ratings[W8-2] = prior_ratings[W8-2] + (new_team2_rating - prior_team2_rating) * (1/5)
+      }
+    }
     if(this_event$`Match Type`[i] == "3 Way"){
       W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
       W2 = which(colnames(Ratings) == this_event$`Wrestler 2`[i])
