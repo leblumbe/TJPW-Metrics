@@ -43,8 +43,11 @@ threeway = tjpw %>%
 sixperson = tjpw %>% 
   filter(`Match Type` == "6 Person Tag")
 
+eightperson = tjpw %>% 
+  filter(`Match Type` == "8 Person Tag")
+
 handicap = tjpw %>% 
-  filter(`Match Type` %in% c("1 v 2 Handicap"))
+  filter(`Match Type` %in% c("1 v 2 Handicap", "2 v 3 Handicap"))
 
 elimination = tjpw %>% 
   filter(`Match Type` == "Elimination")
@@ -103,7 +106,8 @@ events_dates = tjpw %>%
 
 ```{r wrestlers}
 wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler 3`,
-                            tjpw$`Wrestler 4`, tjpw$`Wrestler 5`, tjpw$`Wrestler 6`)) %>% 
+                            tjpw$`Wrestler 4`, tjpw$`Wrestler 5`, tjpw$`Wrestler 6`,
+                            tjpw$`Wrestler 7`, tjpw$`Wrestler 8`)) %>% 
   unique() %>% 
   na.omit()
 ```
@@ -128,7 +132,7 @@ Ratings$Date = events_dates$Date
 starting_ratings = c(1500, 1500, rep(NA, length(wrestlers)-2))
 ```
 
-Function for Calculating the new ratings for an individual event
+Function for Calculating the new ratings for an individual event (1st draft)
 ```{r calculation-function}
 #V1
 calculate_new_ratings <- function(indiv_event){
@@ -161,7 +165,7 @@ calculate_new_ratings <- function(indiv_event){
 }
 ```
 
-Function for Calculating Ratings for an Individual Event (currently includes functionality for singles, tag, 6 person tag, and 3 way matches)
+Function for Calculating Ratings for an Individual Event (evolving with the times)
 ```{r current-calculation-function}
 #V2.4.3 (Added elimination singles matches)
 calculate_new_ratings2 <- function(indiv_event){
@@ -188,6 +192,10 @@ calculate_new_ratings2 <- function(indiv_event){
          new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 0.5)
          new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0.5)
        }
+       if(this_event$Decision[i] == "No Contest"){
+         new_ratings[W1-2] = prior_ratings[W1-2]
+         new_ratings[W2-2] = prior_ratings[W2-2]
+       }
        else{
          new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
          new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
@@ -209,15 +217,25 @@ calculate_new_ratings2 <- function(indiv_event){
       if(this_event$Decision[i] %in% draws){
         new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 0.5)
         new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0.5)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * 0.5
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * 0.5
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * 0.5
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * 0.5
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
+        new_ratings[W4-2] = prior_ratings[W4-2]
       }
       else{
         new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
         new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (2/3)
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * (2/3)
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/3)
       }
-      new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (2/3)
-      new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/3)
-      new_ratings[W3-2] = prior_ratings[W3-2] + (new_team2_rating - prior_team2_rating) * (2/3)
-      new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/3)
     }
     if(this_event$`Match Type`[i] == "6 Person Tag"){
       W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
@@ -241,17 +259,31 @@ calculate_new_ratings2 <- function(indiv_event){
       if(this_event$Decision[i] %in% draws){
         new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 0.5)
         new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0.5)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/3)
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/3)
+        new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/3)
+        new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/3)
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
+        new_ratings[W4-2] = prior_ratings[W4-2]
+        new_ratings[W5-2] = prior_ratings[W5-2]
+        new_ratings[W6-2] = prior_ratings[W6-2]
       }
       else{
         new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
         new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
+        new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/2)
+        new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/4)
+        new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/2)
+        new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+        new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
       }
-      new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/2)
-      new_ratings[W2-2] = prior_ratings[W2-2] + (new_team1_rating - prior_team1_rating) * (1/4)
-      new_ratings[W3-2] = prior_ratings[W3-2] + (new_team1_rating - prior_team1_rating) * (1/4)
-      new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/2)
-      new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/4)
-      new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
     }
     if(this_event$`Match Type`[i] == "3 Way"){
       W1 = which(colnames(Ratings) == this_event$`Wrestler 1`[i])
@@ -264,6 +296,11 @@ calculate_new_ratings2 <- function(indiv_event){
         new_ratings[W1-2] = new_rating_threeway(prior_ratings[W1-2], prior_ratings[W2-2], prior_ratings[W3-2], 1/3)
         new_ratings[W2-2] = new_rating_threeway(prior_ratings[W2-2], prior_ratings[W1-2], prior_ratings[W3-2], 1/3)
         new_ratings[W3-2] = new_rating_threeway(prior_ratings[W3-2], prior_ratings[W2-2], prior_ratings[W1-2], 1/3)
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
       }
       else{
         if(this_event$`W3 Result`[i] == "L*"){
@@ -294,6 +331,11 @@ calculate_new_ratings2 <- function(indiv_event){
       prior_ratings[W3-2] = ifelse(!is.na(prior_ratings[W3-2]), prior_ratings[W3-2], 1500 + 20 * prior_exp$Years[which(prior_exp$Wrestler == this_event$`Wrestler 3`[i])])
       if(this_event$Decision[i] %in% draws){
 # Left Blank to be filled in if necessary        
+      }
+      if(this_event$Decision[i] == "No Contest"){
+        new_ratings[W1-2] = prior_ratings[W1-2]
+        new_ratings[W2-2] = prior_ratings[W2-2]
+        new_ratings[W3-2] = prior_ratings[W3-2]
       }
       else{
         if(this_event$`W1 Result`[i] == "W"){#indicates W1 is alone
