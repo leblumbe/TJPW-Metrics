@@ -16,17 +16,19 @@ safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#33228
 # Version 1: Singles Matches Only from 2013-14
 
 ```{r load-data}
-tjpw13 = read_excel("TJPW Metrics.xlsx", sheet = 2, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+tjpw13 = read_excel("TJPW Metrics.xlsx", sheet = 2, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
 
-tjpw14 = read_excel("TJPW Metrics.xlsx", sheet = 3, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+tjpw14 = read_excel("TJPW Metrics.xlsx", sheet = 3, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
 
-tjpw15 = read_excel("TJPW Metrics.xlsx", sheet = 4, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+tjpw15 = read_excel("TJPW Metrics.xlsx", sheet = 4, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
 
-tjpw16 = read_excel("TJPW Metrics.xlsx", sheet = 5, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+tjpw16 = read_excel("TJPW Metrics.xlsx", sheet = 5, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
 
-tjpw17 = read_excel("TJPW Metrics.xlsx", sheet = 6, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 14)))
+tjpw17 = read_excel("TJPW Metrics.xlsx", sheet = 6, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
 
-tjpw = rbind(tjpw13, tjpw14, tjpw15, tjpw16, tjpw17)
+tjpw18 = read_excel("TJPW Metrics.xlsx", sheet = 7, col_types = c("guess", "date", "guess", "guess", "guess", "text", rep("guess", 19)))
+
+tjpw = rbind(tjpw13, tjpw14, tjpw15, tjpw16, tjpw17, tjpw18)
 ```
 
 Subset by match type
@@ -113,7 +115,7 @@ wrestlers = as.vector(rbind(tjpw$`Wrestler 1`, tjpw$`Wrestler 2`, tjpw$`Wrestler
 ```
 
 ```{r prior-experience}
-prior_exp = read_excel("TJPW Metrics.xlsx", sheet = 7)
+prior_exp = read_excel("TJPW Metrics.xlsx", sheet = 8)
 ```
 
 ```{r draws}
