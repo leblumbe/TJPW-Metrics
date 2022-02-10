@@ -204,8 +204,18 @@ calculate_new_ratings2 <- function(indiv_event){
          new_ratings[W2-2] = prior_ratings[W2-2]
        }
        else{
-         new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
-         new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
+         if(this_event$`Special Rule`[i] == "Two Count Fall"){
+           new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 40/3)
+           new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 40/3)
+         }
+         if(this_event$`Special Rule`[i] == "One Count Fall"){
+           new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 20/3)
+           new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 20/3)
+         }
+         else{
+           new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
+           new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
+         }
        }
     }
     if(this_event$`Match Type`[i] == "Tag"){
