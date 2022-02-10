@@ -9,6 +9,27 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Project Tasklist
+
+## Immediate Tasks
+
+## Near Future Tasks
+
+Battle Royals:
+Create a separate sheet for them
+Code them into the calculation function
+
+Expected Outcome with Draws:
+Try clubelo.com and/or other soccer elo ratings for ideas
+Figure out appropriate formula for my purposes
+Figure out how to change draw likelihood for matches with special rules
+
+## At Some Point in the Future Tasks
+
+Shorter time limit matches:
+Figure out a good way to add them
+Code them into the calculation function
+
 # Including Tag Matches
 
 I'm not sure the best way to approach this, but it feels like a wrestler should not gain or lose as many points for a tag match as for a singles match. One approach would be to see that the total points gained or lost for a team is roughly equivalent to the points gained or lost for a wrestler in a singles match.
@@ -318,3 +339,25 @@ I've pretty well thought out how to code in the new stuff found in 2018. I think
 I also think that I need to create some kind of task list at the top of this document. I have lots of thoughts and ideas lying around this journal, but it's easy to lose track of them or forget them if I don't list them out in one place. I could even list the day(s) I discussed an idea so that I can more easily reference it.
 
 I'm done for tonight. I've got wrestling to watch tomorrow, so it might be a few days until I get back to this.
+
+# 2/9/22 Thoughts
+
+Updated to version 2.5; I added in most of the match types that I wanted to and the special match rules.
+
+## Post-2018 notes
+
+I haven't looked too closely at everything yet, but I saw that Miyu Yamashita smashed past 1700. She was joined by Yuu and Shoko Nakajima. Shoko was one of 6 wrestlers to gain at least 80 ratings points in 2018. However, Nodoka Tenma and Azusa Takigawa both started the year off so low that neither one crossed 1400. The year-to-year increase in events and matches has allowed wrestlers to gain ratings points faster and lose ratings points faster. This means that rookies, who lose almost every match, see their ratings drop very quickly after their debuts. Hopefully the struggles that Nodoka and Azusa had to cross 1400 don't become the new norm for wrestlers on the rise. I imagine that the 2019 data will make it more obvious if this is a problem or not. Maki Itoh and Miu Watanabe both win title belts in the second half of the year; if both wrestlers are well below 1500 when they win the belts, then that will not be a great sign. We already had one instance of a wrestler with a very low rating winning a title belt with Azusa. However, this was a tag belt that she won, and her partner, Sakisama, was very strong. It's possible that individual wrestlers do not need to have as high of a rating to win tag titles if they are part of a good team; this might also be another sign that I need to try out tag team bonuses at some point.
+
+## Battle Royal
+
+It would be very difficult to include this match type directly from my spreadsheet; I would need to add a lot of columns that would stay blank a large percentage of the time. However, this might not be as much of a problem since there will be 10-person tag matches in the future. Either way, it might be best for me to create a separate sheet for battle royals where I can list out every competitor (and maybe who eliminated them too). I could probably do matching by wrestler name in my calculation function to get over to the other dataframe.
+
+## Expected Outcome (with draws)
+
+A thought I had when considering how to change the expected outcome for matches with shorter time limits or with falls under 3 seconds was that my current expected outcome formula might be a little flawed. It presumes that a wrestler will either win or lose a match, but draws exist and occur. To fix this, I would need to find an elo expected outcome formula that includes the possibility of draws. I could try looking clubelo or other soccer elo ratings since elo ratings for soccer have to account for the high likelihood of draws.
+
+This change wouldn't matter a lot for most matches. Based on the small number of draws, my guess is that the odds of a draw for a standard match would never creep above 10%. However, having a formula that can produce odds for a draw would better adapt to non-standard matches. The odds of a draw would increase quite a bit as the time limit for a match decreases. Conversely, the odds of a draw would all but vanish with two count fall rules (except of course a match with two count falls AND a tiny time limit (hello 2021)).
+
+## End of day thoughts
+
+I'm not entirely sure what my next move should be. I think that adding in battle royals is something I could try since I've come up with a new way to approach doing so. I could also try looking up an expected outcome formula that includes draws, but I don't think that has to be done before I put in 2019 match data. I suppose that once I am satisfied enough with these endeavors that I should start entering the 2019 data into my spreadsheet. At least I've reached the point where all the shows are available to watch on Wrestle Universe, so I can occasionally watch a match or two to break up the monotony of data entry. I should also make the task list at the top of this document. I don't want to lose good ideas in the thousands of words I've written.
