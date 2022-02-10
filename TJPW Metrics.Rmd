@@ -59,7 +59,7 @@ battle_royal = tjpw %>%
 ```
 
 ```{r}
-summary(factor(tjpw$Event))
+#summary(factor(tjpw$Event))
 ```
 
 Formula for Expected Outcome
@@ -174,7 +174,7 @@ calculate_new_ratings <- function(indiv_event){
 
 Function for Calculating Ratings for an Individual Event (evolving with the times)
 ```{r current-calculation-function}
-#V2.4.3 (Added elimination singles matches)
+#V2.5 (Added 2 of 3 falls, 2 count fall, 1 count fall, 8 person tag, 2v3 handicap)
 calculate_new_ratings2 <- function(indiv_event){
   this_event = tjpw %>% 
     filter(Event == indiv_event)
@@ -204,17 +204,19 @@ calculate_new_ratings2 <- function(indiv_event){
          new_ratings[W2-2] = prior_ratings[W2-2]
        }
        else{
-         if(this_event$`Special Rule`[i] == "Two Count Fall"){
-           new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 40/3)
-           new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 40/3)
-         }
-         if(this_event$`Special Rule`[i] == "One Count Fall"){
-           new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 20/3)
-           new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 20/3)
-         }
-         else{
+         if(is.na(this_event$`Special Rule`[i])){
            new_ratings[W1-2] =  new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1)
            new_ratings[W2-2] =  new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0)
+         }
+         else{
+           if(this_event$`Special Rule`[i] == "Two Count Fall"){
+             new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 40/3)
+             new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 40/3)
+             }
+           if(this_event$`Special Rule`[i] == "One Count Fall"){
+             new_ratings[W1-2] = new_rating(prior_ratings[W1-2], prior_ratings[W2-2], 1, 20/3)
+             new_ratings[W2-2] = new_rating(prior_ratings[W2-2], prior_ratings[W1-2], 0, 20/3)
+             }
          }
        }
     }
@@ -292,49 +294,7 @@ calculate_new_ratings2 <- function(indiv_event){
         new_ratings[W6-2] = prior_ratings[W6-2]
       }
       else{
-        if(this_event$`Special Rule`[i] == "Best Two Out Of Three Falls"){
-          new.t1.win = new_rating(prior_team1_rating, prior_team2_rating, 1)
-          new.t2.win = new_rating(prior_team2_rating, prior_team1_rating, 1)
-          new.t1.loss = new_rating(prior_team1_rating, prior_team2_rating, 0)
-          new.t2.loss = new_rating(prior_team2_rating, prior_team1_rating, 0)
-          if(this_event$`W1 Result`[i] %in% two_of_three_wlw){#can do other match results if needed
-            #Winning team ratings changes
-            if(this_event$`W1 Result`[i] == "WLW*" & this_event$`W2 Result`[i] == "W*L*W"){#can do other individual wrestler results as needed
-              w1.part1 = (new.t1.win - prior_team1_rating) * (1/4)
-              w2.part1 = (new.t1.win - prior_team1_rating) * (1/2)
-              w3.part1 = (new.t1.win - prior_team1_rating) * (1/4)
-              
-              w1.part2 = (new.t1.loss - prior_team1_rating) * (1/4)
-              w2.part2 = (new.t1.loss - prior_team1_rating) * (1/2)
-              w3.part2 = (new.t1.loss - prior_team1_rating) * (1/4)
-              
-              w1.part3 = (new.t1.win - prior_team1_rating) * (1/2)
-              w2.part3 = (new.t1.win - prior_team1_rating) * (1/4)
-              w3.part3 = (new.t1.win - prior_team1_rating) * (1/4)
-            }
-            #Losing team ratings changes
-            if(this_event$`W4 Result`[i] == "LWL*" & this_event$`W5 Result`[i] == "L*W*L"){#can do other individual wrestler results as needed
-              w4.part1 = (new.t2.loss - prior_team2_rating) * (1/4)
-              w5.part1 = (new.t2.loss - prior_team2_rating) * (1/2)
-              w6.part1 = (new.t2.loss - prior_team2_rating) * (1/4)
-              
-              w4.part2 = (new.t2.win - prior_team2_rating) * (1/4)
-              w5.part2 = (new.t2.win - prior_team2_rating) * (1/2)
-              w6.part2 = (new.t2.win - prior_team2_rating) * (1/4)
-              
-              w4.part3 = (new.t2.loss - prior_team2_rating) * (1/2)
-              w5.part3 = (new.t2.loss - prior_team2_rating) * (1/4)
-              w6.part3 = (new.t2.loss - prior_team2_rating) * (1/4)
-            }
-            new_ratings[W1-2] = prior_ratings[W1-2] + w1.part1 + w1.part2 + w1.part3
-            new_ratings[W2-2] = prior_ratings[W2-2] + w2.part1 + w2.part2 + w2.part3
-            new_ratings[W3-2] = prior_ratings[W3-2] + w3.part1 + w3.part2 + w3.part3
-            new_ratings[W4-2] = prior_ratings[W4-2] + w4.part1 + w4.part2 + w4.part3
-            new_ratings[W5-2] = prior_ratings[W5-2] + w5.part1 + w5.part2 + w5.part3
-            new_ratings[W6-2] = prior_ratings[W6-2] + w6.part1 + w6.part2 + w6.part3
-          }
-        }
-        else{
+        if(is.na(this_event$`Special Rule`[i])){
           new_team1_rating = new_rating(prior_team1_rating, prior_team2_rating, 1)
           new_team2_rating = new_rating(prior_team2_rating, prior_team1_rating, 0)
           new_ratings[W1-2] = prior_ratings[W1-2] + (new_team1_rating - prior_team1_rating) * (1/2)
@@ -343,6 +303,50 @@ calculate_new_ratings2 <- function(indiv_event){
           new_ratings[W4-2] = prior_ratings[W4-2] + (new_team2_rating - prior_team2_rating) * (1/2)
           new_ratings[W5-2] = prior_ratings[W5-2] + (new_team2_rating - prior_team2_rating) * (1/4)
           new_ratings[W6-2] = prior_ratings[W6-2] + (new_team2_rating - prior_team2_rating) * (1/4)
+        }
+        else{
+          if(this_event$`Special Rule`[i] == "Best Two Out Of Three Falls"){
+            new.t1.win = new_rating(prior_team1_rating, prior_team2_rating, 1)
+            new.t2.win = new_rating(prior_team2_rating, prior_team1_rating, 1)
+            new.t1.loss = new_rating(prior_team1_rating, prior_team2_rating, 0)
+            new.t2.loss = new_rating(prior_team2_rating, prior_team1_rating, 0)
+            if(this_event$`W1 Result`[i] %in% two_of_three_wlw){#can do other match results if needed
+              #Winning team ratings changes
+              if(this_event$`W1 Result`[i] == "WLW*" & this_event$`W2 Result`[i] == "W*L*W"){#Can do other individual wrestler results as needed
+                w1.part1 = (new.t1.win - prior_team1_rating) * (1/4)
+                w2.part1 = (new.t1.win - prior_team1_rating) * (1/2)
+                w3.part1 = (new.t1.win - prior_team1_rating) * (1/4)
+              
+                w1.part2 = (new.t1.loss - prior_team1_rating) * (1/4)
+                w2.part2 = (new.t1.loss - prior_team1_rating) * (1/2)
+                w3.part2 = (new.t1.loss - prior_team1_rating) * (1/4)
+              
+                w1.part3 = (new.t1.win - prior_team1_rating) * (1/2)
+                w2.part3 = (new.t1.win - prior_team1_rating) * (1/4)
+                w3.part3 = (new.t1.win - prior_team1_rating) * (1/4)
+              }
+              #Losing team ratings changes
+              if(this_event$`W4 Result`[i] == "LWL*" & this_event$`W5 Result`[i] == "L*W*L"){#can do other individual wrestler results as needed
+                w4.part1 = (new.t2.loss - prior_team2_rating) * (1/4)
+                w5.part1 = (new.t2.loss - prior_team2_rating) * (1/2)
+                w6.part1 = (new.t2.loss - prior_team2_rating) * (1/4)
+              
+                w4.part2 = (new.t2.win - prior_team2_rating) * (1/4)
+                w5.part2 = (new.t2.win - prior_team2_rating) * (1/2)
+                w6.part2 = (new.t2.win - prior_team2_rating) * (1/4)
+              
+                w4.part3 = (new.t2.loss - prior_team2_rating) * (1/2)
+                w5.part3 = (new.t2.loss - prior_team2_rating) * (1/4)
+                w6.part3 = (new.t2.loss - prior_team2_rating) * (1/4)
+              }
+              new_ratings[W1-2] = prior_ratings[W1-2] + w1.part1 + w1.part2 + w1.part3
+              new_ratings[W2-2] = prior_ratings[W2-2] + w2.part1 + w2.part2 + w2.part3
+              new_ratings[W3-2] = prior_ratings[W3-2] + w3.part1 + w3.part2 + w3.part3
+              new_ratings[W4-2] = prior_ratings[W4-2] + w4.part1 + w4.part2 + w4.part3
+              new_ratings[W5-2] = prior_ratings[W5-2] + w5.part1 + w5.part2 + w5.part3
+              new_ratings[W6-2] = prior_ratings[W6-2] + w6.part1 + w6.part2 + w6.part3
+            }
+          }
         }
       }
     }
